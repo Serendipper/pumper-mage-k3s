@@ -40,7 +40,7 @@ helm install prometheus-stack prometheus-community/kube-prometheus-stack \
 So that **grafana.lan** resolves on your LAN (Windows, phones, etc.), use one of:
 
 - **Pi-hole on medivh:** Run `./scripts/setup-pihole-grafana-dns.sh medivh` from the repo when medivh is reachable. It adds `grafana.lan` → control plane IP (from config) and restarts Pi-hole. **Important:** Clients must use **medivh’s IP as their DNS server** — get medivh’s IP from **config/nodes**; set the router’s DHCP DNS to that IP. Then on Windows run `ipconfig /flushdns` and try http://grafana.lan again.
-- **Windows hosts file:** Add `<control-plane-IP>   grafana.lan` to `C:\Windows\System32\drivers\etc\hosts` (edit as Administrator). Control plane IP from **config/nodes** (key `K3S_CP_HOST`) or **config** `K3S_CP_IP`.
+- **Windows hosts file:** Add `&lt;control-plane-IP&gt;   grafana.lan` to `C:\Windows\System32\drivers\etc\hosts` (edit as Administrator). Control plane IP from **config/nodes** (key `K3S_CP_HOST`) or **config** `K3S_CP_IP`.
 - **Other:** See README "What's Not Included" / Grafana for hosts-file and LAN DNS options.
 
 ## Loki and Promtail (logs)

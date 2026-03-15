@@ -52,8 +52,8 @@ From a cluster node (e.g. dalaran) with `nfs-common` installed:
 ```bash
 sudo mkdir -p /tmp/mnt-configs /tmp/mnt-backups
 # NAS host from config (K3S_DATASTORE_URL or your NFS server)
-sudo mount -t nfs <NAS_IP>:/mnt/ssd_pool/k3s/configs /tmp/mnt-configs
-sudo mount -t nfs <NAS_IP>:/mnt/ssd_pool/k3s/backups /tmp/mnt-backups
+sudo mount -t nfs &lt;NAS_IP&gt;:/mnt/ssd_pool/k3s/configs /tmp/mnt-configs
+sudo mount -t nfs &lt;NAS_IP&gt;:/mnt/ssd_pool/k3s/backups /tmp/mnt-backups
 touch /tmp/mnt-configs/hello && touch /tmp/mnt-backups/hello
 ls -la /tmp/mnt-configs /tmp/mnt-backups
 sudo umount /tmp/mnt-configs /tmp/mnt-backups
