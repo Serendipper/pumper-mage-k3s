@@ -10,14 +10,14 @@ Cluster-related values live under **config/**; scripts and skills source these s
 | **project.env.example** | Template for project.env; copy to project.env and fill in. |
 | **README.md** | This file. |
 
-Committed Helm **templates** and **example values** live in **monitoring/**, **ingress/**, and **charts/homelab-showcase/**.
+Committed Helm **templates** and **example values** live in **monitoring/**, **ingress/**, and **charts/homelab-showcase/** (including **charts/homelab-showcase/charts/pihole/**).
 
 ## Gitignored (agent / maintainer only — do not publish)
 
 | File / dir | Purpose |
 |------------|---------|
 | **project.env** | Secrets and overrides (password, WiFi PSK, datastore URL). |
-| **nodes** | Hostname and IP, one per line; **gitignored**. Source of truth for all node and control-plane IPs; agent must read from here. Never hardcode IPs in the repo. |
+| **nodes** | Hostname and IP, one per line; **gitignored**. Source of truth for all node and control-plane IPs; agent must read from here. Never hardcode IPs in the repo. After board/media swaps or to reconcile IPs: `kubectl get nodes -o wide` and update **nodes** from INTERNAL-IP. |
 | **generated/** | Generated files (e.g. Pi first-boot). |
 | **helm-values/** | **Live Helm values** for this project. Copy from `monitoring/helm-values.yaml`, `ingress/helm-values-hostnetwork.yaml`, etc., then customize (real hostnames, sizes, passwords). Agent and maintainers use these for `helm upgrade`; they are not committed. |
 
@@ -27,6 +27,7 @@ Committed Helm **templates** and **example values** live in **monitoring/**, **i
 2. Copy in the values you want to override, e.g.:
    - `cp monitoring/helm-values.yaml config/helm-values/prometheus-stack.yaml`
    - `cp ingress/helm-values-hostnetwork.yaml config/helm-values/ingress-nginx.yaml`
-3. Edit the copies with your real hostnames, IPs, sizes. Use `helm upgrade ... -f config/helm-values/<file>.yaml` when applying.
+   - `cp charts/homelab-showcase/charts/pihole/values.yaml config/helm-values/pihole.yaml`
+3. Edit the copies with your real hostnames, IPs, sizes. Use `helm upgrade ... -f config/helm-values/<file>.yaml` when applying. Install/upgrade commands for template charts (e.g. Pi-hole): **charts/README.md**.
 
 The **charts/homelab-showcase** chart is an example of patterns only; its real values can also live in **config/helm-values/** if you install it.

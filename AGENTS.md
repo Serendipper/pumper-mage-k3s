@@ -91,8 +91,12 @@ All cluster-related values live under **config/**; nothing is hardcoded in scrip
 | **defaults.env** | Non-secret defaults (SSH user, key path, WiFi SSID, CP hostname/IP, scan subnet, K3s URL/port/token path) | Committed; edit to change defaults |
 | **project.env** | Secrets and overrides (password, WiFi PSK, datastore URL); gitignored | You (create from project.env.example) |
 | **nodes** | Hostname and IP, one per line; **gitignored**. Source of truth for node and CP IPs; agent must read from here, never hardcode IPs. | Agent when nodes are added/removed |
+
+**Node IP discovery / after IP changes:** The cluster is the source of truth for which nodes exist and their current IPs. When checking if a node is up, discovering nodes after a board/media swap, or reconciling config with reality, run `kubectl get nodes -o wide` and use the **INTERNAL-IP** column. Update **config/nodes** so each hostname (node name) has the IP the cluster reports. Then refresh SSH config: `./scripts/ssh-config-from-nodes.sh` and replace the K3s block in `~/.ssh/config`. Do not rely only on network scans or configured IPs — the API has the live view.
 | **generated/** | Generated files (e.g. Pi first-boot network from `render-pi-firstboot-network.sh`) | Scripts; gitignored |
 | **helm-values/** | Live Helm values (project-specific); gitignored; not for public repo | Agent / maintainer; see config/README.md |
+
+Template charts (e.g. Pi-hole) and their install/upgrade commands: **charts/README.md** (e.g. `helm upgrade --install pihole ./charts/homelab-showcase/charts/pihole -f config/helm-values/pihole.yaml`).
 
 Scripts source `defaults.env` then `project.env`. See **skills/project-setup/SKILL.md** for first-time setup.
 
@@ -129,6 +133,14 @@ Each node changelog follows this structure:
 4. Remaining Roadmap
 5. Known Limitations (if any)
 
+### Documentation audit (when changing paths, charts, or procedures)
+When you move a chart, add a template chart, or change where values live, update **all** of these so the repo stays the single source of truth:
+- **charts/README.md** — chart paths and install/upgrade commands (e.g. Pi-hole).
+- **config/README.md** — helm-values copy list and pointer to charts/README for commands.
+- **AGENTS.md** — Config table (helm-values row, template-charts pointer); Skills table (Charts row); this audit list if you add another synced location.
+- **monitoring/README.md** — any workload that affects Grafana/LAN DNS (e.g. Pi-hole cluster vs bare-metal, which node, which values file).
+- **README.md** — repo tree comment for `charts/` if chart layout changes.
+
 ## Skills Directory
 
 Agent skills live in `skills/`. Each subdirectory contains a `SKILL.md` with step-by-step procedures.
@@ -140,6 +152,7 @@ Agent skills live in `skills/`. Each subdirectory contains a `SKILL.md` with ste
 | Control plane setup | `skills/control-plane-setup/` | Deploying or rebuilding the K3s server node |
 | Ingress (NGINX) | `skills/ingress-nginx-setup/` | Install NGINX Ingress Controller; artifacts in `ingress/` |
 | Monitoring (Prometheus/Grafana) | `skills/monitoring-stack-setup/` | kube-prometheus-stack; Grafana at grafana.lan; artifacts in `monitoring/` |
+| Charts (showcase, Pi-hole) | **charts/README.md** | Template charts and install/upgrade commands; values in config/helm-values/ |
 | NFS storage | `storage/README.md` | TrueNAS NFS exports (configs, backups); static PVs/PVCs for pods |
 | Worker node setup | `skills/worker-node-setup/` | Adding a new worker to the cluster |
 | Laptop hardening | `skills/hardware/laptop/` | WiFi, lid, suspend, battery, fan, display for laptop nodes |

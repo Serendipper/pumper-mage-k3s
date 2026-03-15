@@ -46,13 +46,16 @@ Tested on:
 | Lenovo ThinkPad S3-S440 | i5-4210U (2C/4T) | 8 GB | Worker |
 | Dell Latitude E5570 | i5-6200U (2C/4T) | 32 GB | Worker |
 | Lenovo IdeaPad Z510 | i7-4700MQ (4C/8T) | 16 GB | Worker |
+| Lenovo ThinkPad T480s | i5-8350U (4C/8T) | 24 GB | Worker |
+| Raspberry Pi 5 | Cortex-A76 (4C/4T) | 8 GB | Worker |
 
-Should also work on: Raspberry Pi 3/4/5, other ARM SBCs, any x86 machine that runs Debian.
+Should also work on: Raspberry Pi 3/4, other ARM SBCs, any x86 machine that runs Debian.
 
 ## Repo Structure
 
 ```
 ├── AGENTS.md                        # Agent runbook — project context, conventions, credentials
+├── config/                          # defaults.env, project.env.example; project.env & nodes (gitignored)
 ├── skills/
 │   ├── control-plane-setup/         # Deploy the K3s server node
 │   ├── worker-node-setup/           # Add a worker (auto-detects hardware class)
@@ -68,10 +71,14 @@ Should also work on: Raspberry Pi 3/4/5, other ARM SBCs, any x86 machine that ru
 ├── monitoring/                       # Prometheus + Grafana Helm values; Grafana at grafana.lan (see skills/monitoring-stack-setup)
 ├── storage/                          # NFS storage notes + PV/PVC (TrueNAS exports); see storage/README.md
 ├── control-plane/
-│   └── <hostname>-<model>.md       # Control plane hardware + change history (e.g. dalaran-3080sff.md)
-└── nodes/
-    ├── roadmap.md                   # Per-node checklist + cluster inventory
-    └── <hostname>-<model>.md        # Per-node hardware snapshot + changelog
+│   └── dalaran-3080sff.md          # Control plane hardware + change history
+├── nodes/
+│   ├── roadmap.md                   # Per-node checklist + cluster inventory
+│   ├── aegwynn-a1278.md            # Worker changelogs (hostname-model)
+│   ├── jaina-t480s.md
+│   ├── modera-rpi5.md
+│   └── ...                          # (antonidas, khadgar, rhonin, etc.)
+└── charts/                          # homelab-showcase + pihole (see charts/README.md); live values in config/helm-values/
 ```
 
 ## Quick Start
