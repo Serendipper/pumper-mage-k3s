@@ -1,0 +1,32 @@
+# Pi-hole. Override in config/helm-values/pihole.yaml (gitignored).
+
+# Node to run on (hostname; single node; hostNetwork binds 53/80 on that node's IP).
+nodeName: modera
+
+# Timezone for Pi-hole (e.g. America/New_York).
+timezone: UTC
+
+# Web admin password. Prefer creating a secret and setting existingSecret (see README).
+# If set here, a Secret will be created; otherwise set existingSecret to an existing Secret name and key.
+webPassword: ""
+
+# Use an existing secret for WEBPASSWORD instead of webPassword. Format: name and key.
+existingSecret: {}  # e.g. { name: pihole-web, key: password }
+
+# Storage
+storageClass: ""    # default StorageClass (K3s local-path) if empty
+persistenceSize: 1Gi
+
+# Image (official multi-arch: amd64, arm64)
+image:
+  repository: pihole/pihole
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# Upstream DNS servers Pi-hole will use (semicolon-separated for Pi-hole v6).
+upstreamDns: "8.8.8.8;8.8.4.4"
+
+# Custom dnsmasq lines (applied via env every pod start; survives restarts). Pi-hole v6 FTLCONF_misc_dnsmasq_lines.
+# Example: grafana.lan -> control plane for Ingress. Use control plane IP from config (K3S_CP_IP), not a real IP here.
+customDnsmasqLines:
+  - "address=/grafana.lan/192.0.2.1"

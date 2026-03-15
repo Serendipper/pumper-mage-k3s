@@ -1,6 +1,6 @@
 # homelab-showcase
 
-Example Helm chart that demonstrates patterns used in this K3s homelab. **For showcase only** — safe to commit to a public repo.
+Example Helm chart that demonstrates patterns used in this K3s homelab. **For showcase only** — safe to commit to a public repo. Additional template charts (e.g. Pi-hole) live under **charts/** in this directory; install them separately from their paths.
 
 ## What this chart shows
 
