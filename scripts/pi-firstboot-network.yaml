@@ -1,0 +1,18 @@
+# Raspberry Pi OS first-boot network (cloud-init netplan format)
+# Do not put real SSID/password here. Use: ./scripts/render-pi-firstboot-network.sh
+# That reads config/project.env and writes config/generated/pi-firstboot-network.yaml
+
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: true
+      optional: true
+  wifis:
+    wlan0:
+      dhcp4: true
+      optional: false
+      access-points:
+        YOUR_SSID:
+          password: "YOUR_PSK"
+      regulatory-domain: US

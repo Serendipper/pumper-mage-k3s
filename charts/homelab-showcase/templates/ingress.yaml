@@ -1,0 +1,35 @@
+# Example: expose via NGINX Ingress (host-based). Requires ingress-nginx in cluster.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "homelab-showcase.name" . }}-echo
+  labels:
+    app.kubernetes.io/name: {{ include "homelab-showcase.name" . }}
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ .Values.ingressHost }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "homelab-showcase.name" . }}-echo
+                port:
+                  number: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "homelab-showcase.name" . }}-echo
+  labels:
+    app.kubernetes.io/name: {{ include "homelab-showcase.name" . }}
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: homelab-showcase-echo

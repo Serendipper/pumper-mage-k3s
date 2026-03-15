@@ -1,0 +1,23 @@
+# Smoke-test Ingress for the echoserver demo. Apply after:
+#   kubectl create deployment demo --image=registry.k8s.io/e2e-test-images/echoserver:2.5 --port=8080
+#   kubectl expose deployment demo --port=80 --target-port=8080
+# Then: curl -H "Host: demo.lan" http://<CONTROL_PLANE_IP>/
+# Or add <CONTROL_PLANE_IP> demo.lan to /etc/hosts and open http://demo.lan
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: demo.lan
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: demo
+            port:
+              number: 80

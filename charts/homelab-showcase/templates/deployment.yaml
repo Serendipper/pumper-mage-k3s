@@ -1,0 +1,28 @@
+# Example: pin to control plane (stable image pull, single-replica workloads).
+# Same pattern as monitoring (Grafana, Prometheus) and Loki in this project.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "homelab-showcase.name" . }}-echo
+  labels:
+    app.kubernetes.io/name: {{ include "homelab-showcase.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.app.replicaCount }}
+  selector:
+    matchLabels:
+      app: homelab-showcase-echo
+  template:
+    metadata:
+      labels:
+        app: homelab-showcase-echo
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: {{ .Values.controlPlaneHostname }}
+      containers:
+        - name: echo
+          image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}"
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              name: http

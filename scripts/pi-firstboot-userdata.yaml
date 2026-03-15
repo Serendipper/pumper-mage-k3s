@@ -1,0 +1,18 @@
+#cloud-config
+# K3s homelab first-boot: user (placeholder serendipper; replace with K3S_SSH_USER from config for real use), SSH, hostname
+# Password hash is inserted by script (openssl passwd -6)
+
+hostname: modera
+
+ssh_pwauth: true
+
+users:
+  - name: serendipper
+    gecos: K3s Homelab
+    groups: [adm, sudo]
+    lock_passwd: false
+    passwd: REPLACE_PASSWORD_HASH
+    shell: /bin/bash
+
+package_update: true
+package_upgrade: false

@@ -61,9 +61,14 @@ Should also work on: Raspberry Pi 3/4/5, other ARM SBCs, any x86 machine that ru
 │   │   │   └── wifi-drivers.md      # Broadcom/Intel/Realtek driver reference
 │   │   ├── desktop/                 # Wake-on-LAN, BIOS, wired networking
 │   │   └── sbc/                     # Raspberry Pi, ARM, boot media, low-RAM tuning
+│   ├── ingress-nginx-setup/         # NGINX Ingress Controller (Helm)
+│   ├── monitoring-stack-setup/      # Prometheus + Grafana (kube-prometheus-stack)
 │   └── training-mode/               # Non-executing walkthrough for learning
+├── ingress/                          # Ingress manifests and Helm values (see skills/ingress-nginx-setup)
+├── monitoring/                       # Prometheus + Grafana Helm values; Grafana at grafana.lan (see skills/monitoring-stack-setup)
+├── storage/                          # NFS storage notes + PV/PVC (TrueNAS exports); see storage/README.md
 ├── control-plane/
-│   └── changelog.md                 # Control plane hardware + change history
+│   └── <hostname>-<model>.md       # Control plane hardware + change history (e.g. dalaran-3080sff.md)
 └── nodes/
     ├── roadmap.md                   # Per-node checklist + cluster inventory
     └── <hostname>-<model>.md        # Per-node hardware snapshot + changelog
@@ -75,7 +80,7 @@ Should also work on: Raspberry Pi 3/4/5, other ARM SBCs, any x86 machine that ru
 
 Install Debian stable on a desktop (wired ethernet). Have an external PostgreSQL instance available (TrueNAS, a VM, Docker, whatever). Then tell your agent:
 
-> "Set up the control plane on 192.168.1.X"
+> "Set up the control plane on <IP>"
 
 The agent reads `skills/control-plane-setup/SKILL.md` and handles OS prep, K3s server install, and datastore configuration.
 
@@ -83,7 +88,7 @@ The agent reads `skills/control-plane-setup/SKILL.md` and handles OS prep, K3s s
 
 Install Debian stable on a laptop/desktop/Pi. Plug in ethernet temporarily (just for the initial SSH). Then:
 
-> "Set up khadgar at 192.168.1.Y — it's a Lenovo IdeaPad Z510"
+> "Set up khadgar at <IP> — it's a Lenovo IdeaPad Z510"
 
 The agent reads `skills/worker-node-setup/SKILL.md`, detects the hardware class, dispatches to the right hardware sub-skill, joins the cluster, and writes the documentation.
 
@@ -188,9 +193,9 @@ Workers are the mages who serve the council. Named after [members of the Kirin T
 ## What's Not Included (Yet)
 
 - Workload deployment (this repo is infrastructure only)
-- Ingress controller / load balancer setup
-- Storage provisioner beyond local-path
-- Monitoring stack (Prometheus, Grafana)
+- **ServiceLB** (K3s built-in) — provides `type: LoadBalancer` for Services. Disabled here; HTTP(S) goes through NGINX Ingress (`ingress/`, `skills/ingress-nginx-setup/`). To expose raw TCP/UDP or use LoadBalancer services, re-enable by omitting `servicelb` from the `--disable` list in `skills/control-plane-setup/`.
+- Storage provisioner beyond local-path — NFS exports on TrueNAS for configs/backups; see `storage/README.md`. Use static PVs/PVCs to mount them in pods.
+- **Monitoring** — deployed via kube-prometheus-stack (Prometheus, Grafana, Alertmanager, node-exporter). Grafana: http://grafana.lan (login `admin` / password in values or from secret). See `monitoring/` and `skills/monitoring-stack-setup/`.
 - Multi-control-plane HA
 
 ## Contributing

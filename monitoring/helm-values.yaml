@@ -1,0 +1,54 @@
+# kube-prometheus-stack values for homelab.
+# Install: see monitoring/README.md and skills/monitoring-stack-setup/SKILL.md
+# Override Grafana password: --set grafana.adminPassword='your-password'
+# Persistence uses local-path (default); Grafana/Prometheus are pinned to dalaran.
+
+grafana:
+  enabled: true
+  adminUser: admin
+  # Override at install: --set grafana.adminPassword='...' (do not commit real password)
+  adminPassword: OVERRIDE_AT_INSTALL
+  # Pin to control plane so image pull works (some workers have flaky registry access)
+  nodeSelector:
+    kubernetes.io/hostname: dalaran
+
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: local-path
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      uid: loki
+      url: http://loki-gateway
+      access: proxy
+      isDefault: false
+      jsonData:
+        httpHeaderName1: "X-Scope-OrgID"
+        httpHeaderValue1: "1"
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.lan
+    path: /
+
+# Prometheus retention and persistence (local-path on dalaran); pin to CP so image pull works
+prometheus:
+  prometheusSpec:
+    nodeSelector:
+      kubernetes.io/hostname: dalaran
+    retention: 15d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi

@@ -1,0 +1,12 @@
+# NGINX Ingress Controller — hostNetwork on control plane
+# Binds 80/443 on the node selected by controller.nodeSelector.
+# At install time use --set-json for nodeSelector (chart expects JSON):
+#   --set-json controller.nodeSelector='{"kubernetes.io/hostname":"dalaran"}'
+# Replace dalaran with K3S_CP_HOST from config.
+controller:
+  hostNetwork: true
+  hostPort:
+    enabled: true
+  kind: DaemonSet
+  nodeSelector:
+    kubernetes.io/hostname: dalaran
