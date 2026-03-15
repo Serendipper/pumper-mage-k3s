@@ -1,0 +1,20 @@
+# Showcase values — placeholder only. Safe for public repo.
+# Real values for this project live in config/helm-values/ (gitignored); see config/README.md.
+
+# Control plane hostname: workloads that need stable image pull / single-replica pin here.
+controlPlaneHostname: CONTROL_PLANE_HOSTNAME
+
+# Ingress host for the example app (e.g. grafana.lan, app.lan).
+ingressHost: example.lan
+
+# Storage: this project uses local-path on the control plane for Grafana, Prometheus, Loki, etc.
+storageClass: local-path
+persistenceSize: 10Gi
+
+# Example app: minimal deployment for demo.
+app:
+  replicaCount: 1
+  image:
+    repository: registry.k8s.io/e2e-test-images/echoserver
+    tag: "2.5"
+    pullPolicy: IfNotPresent

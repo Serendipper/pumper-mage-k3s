@@ -1,0 +1,14 @@
+# Example: local-path PVC (same pattern as Grafana, Prometheus, Loki in this project).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "homelab-showcase.name" . }}-data
+  labels:
+    app.kubernetes.io/name: {{ include "homelab-showcase.name" . }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.persistenceSize }}

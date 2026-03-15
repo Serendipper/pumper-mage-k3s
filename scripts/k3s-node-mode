@@ -1,0 +1,218 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Control plane hostname: from config (K3S_CP_HOST in defaults.env / project.env)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." 2>/dev/null && pwd)" || true
+if [ -n "${REPO_ROOT:-}" ]; then
+  [ -f "$REPO_ROOT/config/defaults.env" ] && . "$REPO_ROOT/config/defaults.env"
+  [ -f "$REPO_ROOT/config/project.env" ] && . "$REPO_ROOT/config/project.env"
+fi
+DALARAN="${K3S_CP_HOST:-dalaran}"
+HOSTNAME=$(hostname)
+DRAIN_TIMEOUT=90
+COUNTDOWN=30
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+DIM='\033[2m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
+# If not running inside a terminal, relaunch in a fullscreen one
+if [[ "${K3S_NODE_MODE_INNER:-}" != "1" ]]; then
+    export K3S_NODE_MODE_INNER=1
+    SCRIPT=$(realpath "$0")
+    if command -v konsole &>/dev/null; then
+        exec konsole --fullscreen --hide-menubar --hide-tabbar -e "$SCRIPT"
+    elif command -v gnome-terminal &>/dev/null; then
+        exec gnome-terminal --full-screen -- "$SCRIPT"
+    else
+        exec xterm -fullscreen -e "$SCRIPT"
+    fi
+fi
+
+INHIBIT_PID=""
+
+cleanup() {
+    tput cnorm 2>/dev/null || true
+    tput sgr0 2>/dev/null || true
+    stty echo 2>/dev/null || true
+    if [[ -n "$INHIBIT_PID" ]]; then
+        kill "$INHIBIT_PID" 2>/dev/null || true
+    fi
+}
+trap cleanup EXIT
+
+center_text() {
+    local text="$1"
+    local row="$2"
+    local cols
+    cols=$(tput cols)
+    local col=$(( (cols - ${#text}) / 2 ))
+    [[ $col -lt 0 ]] && col=0
+    tput cup "$row" "$col"
+    echo -ne "$text"
+}
+
+confirm_entry() {
+    clear
+    local rows mid
+    rows=$(tput lines)
+    mid=$(( rows / 2 ))
+
+    center_text "${BOLD}${YELLOW}=== K3s NODE MODE ===${RESET}" $(( mid - 4 ))
+    center_text "This will:" $(( mid - 2 ))
+    center_text "- Inhibit sleep and suspend" $(( mid - 1 ))
+    center_text "- Start the K3s agent and join the cluster" $(( mid ))
+    center_text "- Fullscreen display (apps stay in background)" $(( mid + 1 ))
+    center_text "${BOLD}${RED}Press ENTER to continue, or Ctrl+C to cancel${RESET}" $(( mid + 4 ))
+    read -r
+}
+
+enter_node_mode() {
+    clear
+    local mid
+    mid=$(( $(tput lines) / 2 ))
+
+    center_text "Inhibiting sleep..." "$mid"
+    sudo systemctl mask --runtime sleep.target suspend.target hibernate.target hybrid-sleep.target 2>/dev/null || true
+    sudo systemd-inhibit --what=idle:sleep:handle-lid-switch --who="k3s-node-mode" --why="K3s node active" --mode=block sleep infinity &
+    INHIBIT_PID=$!
+    sleep 1
+
+    clear
+    center_text "Starting K3s agent..." "$mid"
+    sudo systemctl start k3s-agent
+    sleep 5
+
+    clear
+    center_text "Uncordoning node on cluster..." "$mid"
+    ssh -o ConnectTimeout=5 "$DALARAN" "sudo k3s kubectl uncordon $HOSTNAME" 2>/dev/null || true
+    sleep 1
+}
+
+screensaver_loop() {
+    tput civis
+    stty -echo
+
+    local cols rows x y dx dy msg submsg tick status_tick
+
+    msg="Currently parsing in K3s"
+    submsg="press any key to leave"
+
+    cols=$(tput cols)
+    rows=$(tput lines)
+    x=$(( RANDOM % (cols - ${#msg} - 4) + 2 ))
+    y=$(( RANDOM % (rows - 6) + 2 ))
+    dx=1
+    dy=1
+    tick=0
+    status_tick=0
+    local node_status="checking..."
+
+    while true; do
+        if read -rsn1 -t 0.2; then
+            return 0
+        fi
+
+        tick=$(( tick + 1 ))
+        x=$(( x + dx ))
+        y=$(( y + dy ))
+
+        if (( x <= 1 || x >= cols - ${#msg} - 2 )); then
+            dx=$(( -dx ))
+            x=$(( x + dx * 2 ))
+        fi
+        if (( y <= 1 || y >= rows - 3 )); then
+            dy=$(( -dy ))
+            y=$(( y + dy * 2 ))
+        fi
+
+        # Refresh node status every ~30 ticks (~6 seconds)
+        status_tick=$(( status_tick + 1 ))
+        if (( status_tick >= 30 )); then
+            status_tick=0
+            node_status=$(ssh -o ConnectTimeout=3 "$DALARAN" \
+                "sudo k3s kubectl get node $HOSTNAME --no-headers -o custom-columns=STATUS:.status.conditions[-1].type 2>/dev/null" 2>/dev/null) || node_status="unknown"
+        fi
+
+        clear
+        tput cup "$y" "$x"
+        echo -ne "${BOLD}${GREEN}${msg}${RESET}"
+        tput cup $(( y + 1 )) $(( x + (${#msg} - ${#submsg}) / 2 ))
+        echo -ne "${DIM}${CYAN}${submsg}${RESET}"
+
+        tput cup $(( rows - 1 )) 0
+        echo -ne "${DIM}node: ${HOSTNAME} | status: ${node_status}${RESET}"
+    done
+}
+
+confirm_exit() {
+    tput cnorm
+    stty echo
+    clear
+    local mid
+    mid=$(( $(tput lines) / 2 ))
+
+    center_text "${BOLD}${YELLOW}Press any key again to confirm leaving node mode${RESET}" "$mid"
+    center_text "${DIM}(wait 10 seconds to cancel and stay in node mode)${RESET}" $(( mid + 2 ))
+
+    if read -rsn1 -t 10; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+leave_node_mode() {
+    clear
+    local rows mid
+    rows=$(tput lines)
+    mid=$(( rows / 2 ))
+
+    center_text "${BOLD}${YELLOW}Leaving node mode...${RESET}" $(( mid - 3 ))
+    center_text "Cordoning and draining node..." $(( mid - 1 ))
+
+    ssh -o ConnectTimeout=5 "$DALARAN" "sudo k3s kubectl cordon $HOSTNAME" 2>/dev/null || true
+    ssh -o ConnectTimeout=5 "$DALARAN" "sudo k3s kubectl drain $HOSTNAME --ignore-daemonsets --delete-emptydir-data --timeout=${DRAIN_TIMEOUT}s" 2>/dev/null || true
+
+    for i in $(seq "$COUNTDOWN" -1 1); do
+        clear
+        center_text "${BOLD}${YELLOW}Leaving node mode...${RESET}" $(( mid - 3 ))
+        center_text "Draining workloads from node..." $(( mid - 1 ))
+        center_text "${BOLD}${CYAN}Returning to desktop in ${i}s${RESET}" $(( mid + 1 ))
+        center_text "${DIM}Pods are being rescheduled to other nodes${RESET}" $(( mid + 3 ))
+        sleep 1
+    done
+
+    clear
+    center_text "Stopping K3s agent..." "$mid"
+    sudo systemctl stop k3s-agent
+    sleep 1
+
+    center_text "Restoring power management..." $(( mid + 1 ))
+    sudo systemctl unmask --runtime sleep.target suspend.target hibernate.target hybrid-sleep.target 2>/dev/null || true
+    if [[ -n "$INHIBIT_PID" ]]; then
+        kill "$INHIBIT_PID" 2>/dev/null || true
+        INHIBIT_PID=""
+    fi
+
+    clear
+    center_text "${BOLD}${GREEN}Back to daily driver mode${RESET}" "$mid"
+    sleep 2
+}
+
+# --- Main ---
+confirm_entry
+enter_node_mode
+
+while true; do
+    screensaver_loop
+    if confirm_exit; then
+        leave_node_mode
+        break
+    fi
+done

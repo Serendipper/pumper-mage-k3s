@@ -1,0 +1,15 @@
+# Promtail: ship pod logs to Loki. Deploy after Loki is running.
+# Install: helm install promtail grafana/promtail -n monitoring -f monitoring/promtail-helm-values.yaml
+
+config:
+  lokiAddress: http://loki-gateway/loki/api/v1/push
+
+# Run only on control plane to avoid ImagePullBackOff on workers (you still get CP + any pods on dalaran)
+nodeSelector:
+  kubernetes.io/hostname: dalaran
+tolerations: []
+# Persist positions so restarts don't re-send old logs
+persistence:
+  enabled: true
+  storageClass: local-path
+  size: 1Gi

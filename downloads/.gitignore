@@ -1,0 +1,6 @@
+# Large OS images — download locally per README
+*.img
+*.img.xz
+*.img.xz.sha256
+*.img.xz.sha1
+*.img.xz.sig

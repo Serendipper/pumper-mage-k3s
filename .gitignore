@@ -1,0 +1,15 @@
+# Local project config (secrets); see config/project.env.example
+config/project.env
+
+# Live node list (hostname IP); agent-maintained
+config/nodes
+
+# Generated from project.env (Pi first-boot, etc.)
+config/generated/
+
+# Live Helm values (project-specific overrides); agent/maintainer only, not public
+config/helm-values/
+
+# Live cluster state (node + control plane changelogs)
+nodes/
+control-plane/

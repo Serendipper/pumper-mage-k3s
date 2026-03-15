@@ -1,0 +1,11 @@
+apiVersion: v2
+name: homelab-showcase
+description: Example Helm chart showcasing patterns used in this K3s homelab (nodeSelector, local-path persistence, ingress). For demonstration only; not required for the cluster.
+type: application
+version: 0.1.0
+appVersion: "1.0"
+keywords:
+  - homelab
+  - k3s
+  - example
+maintainers: []
