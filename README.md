@@ -80,7 +80,7 @@ Should also work on: Raspberry Pi 3/4/5, other ARM SBCs, any x86 machine that ru
 
 Install Debian stable on a desktop (wired ethernet). Have an external PostgreSQL instance available (TrueNAS, a VM, Docker, whatever). Then tell your agent:
 
-> "Set up the control plane on <IP>"
+> "Set up the control plane on &lt;IP&gt;"
 
 The agent reads `skills/control-plane-setup/SKILL.md` and handles OS prep, K3s server install, and datastore configuration.
 
@@ -88,7 +88,7 @@ The agent reads `skills/control-plane-setup/SKILL.md` and handles OS prep, K3s s
 
 Install Debian stable on a laptop/desktop/Pi. Plug in ethernet temporarily (just for the initial SSH). Then:
 
-> "Set up khadgar at <IP> — it's a Lenovo IdeaPad Z510"
+> "Set up khadgar at &lt;IP&gt; — it's a Lenovo IdeaPad Z510"
 
 The agent reads `skills/worker-node-setup/SKILL.md`, detects the hardware class, dispatches to the right hardware sub-skill, joins the cluster, and writes the documentation.
 
