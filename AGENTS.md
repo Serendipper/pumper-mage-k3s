@@ -52,7 +52,7 @@ Current assignments:
 | `khadgar` | Current Archmage, leader of the Council of Six | Worker |
 | `modera` | Council of Six | Worker (Pi 5) |
 
-Next available (Tier 1): `medivh` (sandbox), `jaina`
+Next available (Tier 1): `medivh`, `jaina`
 
 ### Network
 - **WiFi**: SSID and PSK live only in **config/** (`K3S_WIFI_SSID`, `K3S_WIFI_PSK`). Prefer 2.4 GHz for nodes (range); 5 GHz often busy; 6 GHz for WiFi 6E/7 only.
@@ -159,7 +159,6 @@ Agent skills live in `skills/`. Each subdirectory contains a `SKILL.md` with ste
 | Laptop hybrid | `skills/hardware/laptop-hybrid/` | Daily-driver laptop as part-time node; non-Debian distros (Fedora, Arch, etc.) |
 | Desktop setup | `skills/hardware/desktop/` | WoL, BIOS, wired networking for desktop nodes |
 | SBC setup | `skills/hardware/sbc/` | Raspberry Pi, ARM boards, boot media |
-| Sanitizing sandbox | `skills/sanitizing-sandbox/` | Pi as USB stick sanitization station (USB SSD boot, wipe workflow) |
 | Training mode | `skills/training-mode/` | User wants to learn — switch to non-executing walkthrough |
 
 The worker node skill auto-detects hardware class and dispatches to the appropriate hardware sub-skill.
