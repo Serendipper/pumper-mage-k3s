@@ -70,7 +70,7 @@ Environment variables still override: e.g. `K3S_SSH_USER=other ./scripts/ssh-nod
 
 ### Generated files from project config
 
-- **Pi first-boot network:** Run `./scripts/render-pi-firstboot-network.sh` to generate `config/generated/pi-firstboot-network.yaml` from `K3S_WIFI_SSID` and `K3S_WIFI_PSK`. Use that file when staging first-boot on medivh (see `downloads/README.md`, `skills/sanitizing-sandbox/SKILL.md`). Regenerate after changing WiFi in `config/project.env`.
+- **Pi first-boot network:** Run `./scripts/render-pi-firstboot-network.sh` to generate `config/generated/pi-firstboot-network.yaml` from `K3S_WIFI_SSID` and `K3S_WIFI_PSK`. Use that file as cloud-init `network-config` when preconfiguring Pi first-boot (see `downloads/README.md`). Regenerate after changing WiFi in `config/project.env`.
 
 ## 4. Next step
 

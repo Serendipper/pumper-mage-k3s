@@ -13,3 +13,6 @@ config/helm-values/
 # Live cluster state (node + control plane changelogs)
 nodes/
 control-plane/
+
+# Private skill (keep locally; not for public repo)
+skills/sanitizing-sandbox/
