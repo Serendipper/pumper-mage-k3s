@@ -1,0 +1,42 @@
+---
+description: K3s homelab project context and skill discovery
+alwaysApply: true
+---
+
+# K3s Homelab Project
+
+This is a K3s Kubernetes cluster on repurposed consumer hardware. Read `AGENTS.md` at the repo root for full project context, conventions, and architecture.
+
+## Skills
+
+Agent skills live in `skills/`. Each contains a `SKILL.md` with autonomous procedures:
+
+- `skills/control-plane-setup/` — deploy or rebuild the K3s server node
+- `skills/worker-node-setup/` — add a new worker to the cluster (auto-detects hardware class)
+- `skills/hardware/laptop/` — WiFi, lid, suspend, battery, fan hardening for dedicated laptop nodes
+- `skills/hardware/laptop-hybrid/` — daily-driver laptop as part-time node; supports Fedora, Arch, Ubuntu
+- `skills/hardware/desktop/` — WoL, BIOS, wired networking for desktops
+- `skills/hardware/sbc/` — Raspberry Pi, ARM boards, boot media
+- `skills/training-mode/` — non-executing walkthrough mode for teaching
+
+**Pi worker:** Use **`scripts/runbook-worker-pi.md`** — same procedure for every Pi (modera, medivh, or new). Set `NODE_HOSTNAME` and `NODE_IP`; follow the modera flow (staged first-boot then OS prep then join). Do not create node-specific runbooks.
+
+When the user asks to set up a node, read the appropriate SKILL.md and follow its procedure. When the user says "training mode", "teach me", or "walk me through", read `skills/training-mode/SKILL.md` and switch to non-executing mode.
+
+## SSH from agent
+
+When running SSH to cluster nodes from the agent, use `scripts/ssh-node.sh <hostname> '<command>'` so SSH works regardless of process user/HOME (see AGENTS.md).
+
+## Sync / rsync
+
+When the user says "sync" (e.g. "sync with framework12"), they do **not** mean run rsync. Only run rsync when they **explicitly ask for rsync** (e.g. "rsync to framework12", "run rsync with framework12"). Do not infer that "sync" means rsync. Also: **do not sync the repo unless the user explicitly asks to rsync.** Syncing overwrites the remote copy and can lose work done on framework12. If the user only asks for SSH keys, key deploy, or “framework12 can maintain the cluster,” only set up keys and SSH config — do not rsync the project.
+
+When the user *does* explicitly ask to rsync to framework12: **do not use rsync --delete**. The remote may have files not in the source tree (e.g. `downloads/` Pi OS image). Use sshpass for the transport: `rsync -avz -e "sshpass -p \"$K3S_NODE_PASSWORD\" ssh -o StrictHostKeyChecking=no" --exclude='.git' ./ harmless@192.168.1.188:projects/pumper-mage-k3s/`
+
+## Documentation
+
+- Update `nodes/<hostname>-<model>.md` after each deployment
+- Update inventory table in `nodes/roadmap.md`
+- Add or remove the node in **config/nodes** (one line: `hostname IP`) so `scripts/ssh-node.sh` stays in sync
+- If the control plane node changes, update **K3S_CP_HOST** in config/defaults.env or project.env
+- Follow the changelog template described in `AGENTS.md`
