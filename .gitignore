@@ -4,6 +4,9 @@ config/project.env
 # Live node list (hostname IP); agent-maintained
 config/nodes
 
+# Scratch folder for downloads (OS images, etc.); not tracked
+downloads/
+
 # Generated from project.env (Pi first-boot, etc.)
 config/generated/
 
