@@ -1,7 +1,7 @@
 #!/bin/bash
 # Generate Pi first-boot network config from config/project.env.
 # Output: config/generated/pi-firstboot-network.yaml (gitignored).
-# Use this file when staging first-boot on medivh (see downloads/README, sanitizing-sandbox).
+# Use this file when staging first-boot (see skills/sanitizing-sandbox/SKILL.md § Pi OS image and staging).
 # Run from repo root: ./scripts/render-pi-firstboot-network.sh
 
 set -e
