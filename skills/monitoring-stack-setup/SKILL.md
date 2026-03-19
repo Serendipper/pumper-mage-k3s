@@ -24,14 +24,14 @@ Or: `sudo apt install helm` (Debian).
 
 ## 2. Add Helm repo and install
 
-From the repo root (so `monitoring/helm-values.yaml` is available), or copy the values file to the node first.
+From the repo root (so `config/helm-values/prometheus-stack.yaml` exists), or copy the values file to the node first.
 
 ```bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 helm install prometheus-stack prometheus-community/kube-prometheus-stack \
   -n monitoring --create-namespace \
-  -f monitoring/helm-values.yaml
+  -f config/helm-values/prometheus-stack.yaml
 ```
 
 Optional: set Grafana admin password at install (recommended):
@@ -39,7 +39,7 @@ Optional: set Grafana admin password at install (recommended):
 ```bash
 helm install prometheus-stack prometheus-community/kube-prometheus-stack \
   -n monitoring --create-namespace \
-  -f monitoring/helm-values.yaml \
+  -f config/helm-values/prometheus-stack.yaml \
   --set grafana.adminPassword='your-secure-password'
 ```
 
@@ -66,7 +66,7 @@ The repo values enable **Grafana** and **Prometheus** persistence (local-path) a
 
 ```bash
 helm upgrade prometheus-stack prometheus-community/kube-prometheus-stack \
-  -n monitoring -f monitoring/helm-values.yaml
+  -n monitoring -f config/helm-values/prometheus-stack.yaml
 ```
 
 If a previous upgrade is stuck (`pending-upgrade`), rollback then re-upgrade:
@@ -75,7 +75,7 @@ If a previous upgrade is stuck (`pending-upgrade`), rollback then re-upgrade:
 helm rollback prometheus-stack 2 -n monitoring
 # wait for rollback to complete, then:
 helm upgrade prometheus-stack prometheus-community/kube-prometheus-stack \
-  -n monitoring -f monitoring/helm-values.yaml
+  -n monitoring -f config/helm-values/prometheus-stack.yaml
 ```
 
 **Loki (logs):** `helm repo add grafana https://grafana.github.io/helm-charts`, then install Loki and Promtail per **monitoring/README.md** (Loki + Promtail section). In Grafana, add the Loki datasource: Connections → Data sources → Add data source → Loki, URL `http://loki-gateway`, Save.
@@ -83,6 +83,7 @@ helm upgrade prometheus-stack prometheus-community/kube-prometheus-stack \
 ## Artifacts
 
 - **monitoring/helm-values.yaml** — Grafana Ingress (grafana.lan), persistence (local-path), Prometheus retention + persistence, Loki datasource.
+- **config/helm-values/prometheus-stack.yaml** — Local override (gitignored) used for install/upgrade (pinned Grafana/Prometheus and includes Loki additionalDataSources).
 - **monitoring/loki-helm-values.yaml** — Loki monolithic + MinIO, local-path PVCs.
 - **monitoring/promtail-helm-values.yaml** — Promtail → Loki, persistence for positions.
 - **monitoring/README.md** — Quick reference and install commands.

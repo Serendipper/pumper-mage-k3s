@@ -6,10 +6,10 @@ Helm-based deployment of [kube-prometheus-stack](https://github.com/prometheus-c
 
 | File | Purpose |
 |------|---------|
-| `helm-values.yaml` | Grafana Ingress (grafana.lan), **persistence** (local-path, 10Gi), Prometheus retention 15d + **persistence** (local-path, 20Gi), **Loki datasource**. |
+| `config/helm-values/prometheus-stack.yaml` | Local override (gitignored): Grafana Ingress (`grafana.lan`), **persistence** (local-path, 10Gi), Prometheus retention 15d + **persistence** (local-path, 20Gi), **Loki datasource**. |
 | `loki-helm-values.yaml` | Loki monolithic + MinIO, local-path PVCs (30Gi Loki, MinIO default), pinned to dalaran. |
 | `promtail-helm-values.yaml` | Promtail: push logs to Loki, local-path 1Gi for positions. |
-| `grafana-datasource-loki.yaml` | Fallback ConfigMap for Loki datasource only if not using stack values. **Loki is provisioned from helm-values.yaml** (additionalDataSources). |
+| `grafana-datasource-loki.yaml` | Fallback ConfigMap for Loki datasource only if not using stack values. **Loki is provisioned from `config/helm-values/prometheus-stack.yaml`** (additionalDataSources). |
 
 ## Install (from control plane or with kubeconfig)
 
@@ -18,7 +18,7 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm repo update
 helm install prometheus-stack prometheus-community/kube-prometheus-stack \
   -n monitoring --create-namespace \
-  -f monitoring/helm-values.yaml
+  -f config/helm-values/prometheus-stack.yaml
 ```
 
 Optional: set Grafana admin password at install:
@@ -26,7 +26,7 @@ Optional: set Grafana admin password at install:
 ```bash
 helm install prometheus-stack prometheus-community/kube-prometheus-stack \
   -n monitoring --create-namespace \
-  -f monitoring/helm-values.yaml \
+  -f config/helm-values/prometheus-stack.yaml \
   --set grafana.adminPassword='your-secure-password'
 ```
 
@@ -48,11 +48,11 @@ So that **grafana.lan** resolves on your LAN (Windows, phones, etc.), use one of
 
 - **Loki:** `helm repo add grafana https://grafana.github.io/helm-charts && helm install loki grafana/loki -n monitoring -f monitoring/loki-helm-values.yaml`
 - **Promtail:** `helm install promtail grafana/promtail -n monitoring -f monitoring/promtail-helm-values.yaml` (after Loki is running).
-- **Grafana:** Add Loki datasource: Connections → Data sources → Add data source → Loki, URL `http://loki-gateway`, Save. Or re-apply the stack with `helm-values.yaml` (includes `additionalDataSources` for Loki).
+- **Grafana:** Add Loki datasource: Connections → Data sources → Add data source → Loki, URL `http://loki-gateway`, Save. Or re-apply the stack with `config/helm-values/prometheus-stack.yaml` (includes `additionalDataSources` for Loki).
 
 ## Persistence (local-path)
 
-Grafana, Prometheus, Loki, MinIO, and Promtail use **local-path** PVCs on dalaran. Ensure the control plane has enough free disk (see README storage notes).
+Grafana, Loki, MinIO, and Promtail use **local-path** PVCs on `dalaran`. Prometheus uses **local-path** PVCs pinned to `khadgar`. Ensure those nodes have enough free disk (see README storage notes).
 
 ## Prerequisites
 

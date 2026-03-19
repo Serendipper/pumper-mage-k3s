@@ -19,24 +19,30 @@ SUBNET="${K3S_SCAN_SUBNET:-192.168.1.0/24}"
 TMPD=$(mktemp -d)
 trap "rm -rf '$TMPD'" EXIT
 
+. "$SCRIPT_DIR/lib/spinner.sh"
+
 # 1) IPs that responded on port 22 (open or closed) = something is there
-nmap -Pn -p 22 "$SUBNET" --host-timeout 30s -oG - 2>/dev/null \
-  | grep "Host:" | grep "Ports:" \
-  | sed 's/.*Host: \([0-9.]*\).*Ports: \([^\t]*\).*/\1 \2/' \
-  | awk '$2 ~ /open|closed/ {print $1}' \
-  | sort -u -t. -k4 -n \
-  > "$TMPD/responded.txt"
+run_with_spinner "Scanning port 22 (nmap)" -- bash -c "
+  nmap -Pn -p 22 \"$SUBNET\" --host-timeout 30s -oG - 2>/dev/null \
+    | grep 'Host:' | grep 'Ports:' \
+    | sed 's/.*Host: \([0-9.]*\).*Ports: \([^\t]*\).*/\1 \2/' \
+    | awk '\$2 ~ /open|closed/ {print \$1}' \
+    | sort -u -t. -k4 -n \
+    > \"$TMPD/responded.txt\"
+"
 
 # 2) IPs that have a reverse-DNS or mDNS name (getent then avahi)
 # Derive range from subnet (simple case: 192.168.1.0/24 → 1-254)
 if [[ "$SUBNET" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)\.0/24$ ]]; then
   base="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
-  for i in $(seq 1 254); do
-    ip=$base.$i
-    name=$(getent hosts "$ip" 2>/dev/null | awk '{print $2}' | head -1)
-    [ -z "$name" ] && name=$(avahi-resolve -a "$ip" 2>/dev/null | awk '{print $2}')
-    [ -n "$name" ] && echo "$ip"
-  done | sort -u -t. -k4 -n > "$TMPD/have_name.txt"
+  run_with_spinner "Resolving names (getent/avahi)" -- bash -c "
+    for i in \$(seq 1 254); do
+      ip=$base.\$i
+      name=\$(getent hosts \"\$ip\" 2>/dev/null | awk '{print \$2}' | head -1)
+      [ -z \"\$name\" ] && name=\$(avahi-resolve -a \"\$ip\" 2>/dev/null | awk '{print \$2}')
+      [ -n \"\$name\" ] && echo \"\$ip\"
+    done | sort -u -t. -k4 -n > \"$TMPD/have_name.txt\"
+  "
 else
   touch "$TMPD/have_name.txt"
 fi

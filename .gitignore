@@ -4,6 +4,9 @@ config/project.env
 # Live node list (hostname IP); agent-maintained
 config/nodes
 
+# Generated local artifacts (kubeconfigs, generated dashboards, etc.)
+generated/
+
 # Scratch folder for downloads (OS images, etc.); not tracked
 downloads/
 

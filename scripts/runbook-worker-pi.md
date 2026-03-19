@@ -60,6 +60,8 @@ Variables you need in both paths:
 - **NODE_HOSTNAME** — Kirin Tor hostname (e.g. `modera`, `medivh`). See **AGENTS.md** for naming.
 - **NODE_IP** — Pi’s IP after first boot (from DHCP or scan). Update after reboot if it changes.
 
+**Scripts:** **scripts/pi-worker-os-prep.sh** and **scripts/pi-worker-join.sh** run Phase 2 and Phase 3 for a given `NODE_HOSTNAME` and `NODE_IP`. The join script has no internal timeout (allow ≥10 min if you run it under a wrapper). Long-running steps show a spinner and elapsed time (see **scripts/lib/spinner.sh**).
+
 ---
 
 ## Phase 1: Staged first-boot (recommended — same as modera)
@@ -220,11 +222,13 @@ Then join (run on the Pi via SSH):
 
 ```bash
 K3S_URL="https://${K3S_CP_IP}:${K3S_API_PORT}"
-sshpass -p "$K3S_NODE_PASSWORD" ssh "$K3S_SSH_USER@$NODE_IP" "curl -sfL $K3S_INSTALL_URL | K3S_URL=$K3S_URL K3S_TOKEN=$K3S_TOKEN sudo sh -"
+sshpass -p "$K3S_NODE_PASSWORD" ssh "$K3S_SSH_USER@$NODE_IP" "curl -sfL -4 $K3S_INSTALL_URL | K3S_URL=$K3S_URL K3S_TOKEN=$K3S_TOKEN sudo sh -"
 ```
 
-If the key was deployed in 3.1 you can use:  
-`ssh "$K3S_SSH_USER@$NODE_IP" "curl -sfL $K3S_INSTALL_URL | K3S_URL=$K3S_URL K3S_TOKEN=$K3S_TOKEN sudo sh -"`
+**Pi download slowness:** Pi over Wi‑Fi can take 5–10 minutes to download the ~68 MB binary from GitHub. Use `curl -4` to force IPv4. Do not interrupt the SSH session. No script in this repo runs the join (it is manual/copy‑paste); if you automate this step elsewhere, use a timeout of at least 10 minutes for the join command.
+
+If the key was deployed in 3.1 you can use:
+`ssh "$K3S_SSH_USER@$NODE_IP" "curl -sfL -4 $K3S_INSTALL_URL | K3S_URL=$K3S_URL K3S_TOKEN=$K3S_TOKEN sudo sh -"`
 
 ### 3.3 Label and verify
 
