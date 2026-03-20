@@ -92,12 +92,12 @@ All cluster-related values live under **config/**; nothing is hardcoded in scrip
 | **defaults.env** | Non-secret defaults (SSH user, key path, WiFi SSID, CP hostname/IP, scan subnet, K3s URL/port/token path) | Committed; edit to change defaults |
 | **project.env** | Secrets and overrides (password, WiFi PSK, datastore URL); gitignored | You (create from project.env.example) |
 | **nodes** | Hostname and IP, one per line; **gitignored**. Source of truth for node and CP IPs; agent must read from here, never hardcode IPs. | Agent when nodes are added/removed |
+| **generated/** | Generated files (e.g. Pi first-boot network from `render-pi-firstboot-network.sh`) | Scripts; gitignored |
+| **helm-values/** | **Live** Helm values for **every** chart (gitignored). Committed YAML under **monitoring/**, **ingress/**, and **charts/** is **template only** — copy into **helm-values/** then `helm install` / `upgrade -f config/helm-values/...`. Full map: **config/README.md** § *Helm: templates vs live values*. | Agent / maintainer |
 
 **Node IP discovery / after IP changes:** The cluster is the source of truth for which nodes exist and their current IPs. When checking if a node is up, discovering nodes after a board/media swap, or reconciling config with reality, run `kubectl get nodes -o wide` and use the **INTERNAL-IP** column. Update **config/nodes** so each hostname (node name) has the IP the cluster reports. Then refresh SSH config: `./scripts/ssh-config-from-nodes.sh` and replace the K3s block in `~/.ssh/config`. Do not rely only on network scans or configured IPs — the API has the live view.
 
 **Network scan to discover devices:** To list every device on the LAN with names (for finding a node’s new IP, or inventory), run **`./scripts/scan-network.sh`** from repo root. It (1) runs `nmap -Pn -p 22 $K3S_SCAN_SUBNET --host-timeout 30s` so hosts that respond on port 22 (open or closed) are counted as devices — use **`--host-timeout 30s`** so slow or filtered hosts aren’t skipped; (2) does reverse-DNS (getent + avahi) for the subnet and keeps IPs that have a name; (3) takes the union (responded on port 22 OR has a name) and for each device IP prints one line: `IP name` or `IP —`. Run the scan **locally** (on the machine that’s on the LAN). For a single IP that doesn’t appear in the list (e.g. doesn’t answer ping), resolve it with `getent hosts <IP>` or `avahi-resolve -a <IP>` to get its name.
-| **generated/** | Generated files (e.g. Pi first-boot network from `render-pi-firstboot-network.sh`) | Scripts; gitignored |
-| **helm-values/** | Live Helm values (project-specific); gitignored; not for public repo | Agent / maintainer; see config/README.md |
 
 Template charts (e.g. Pi-hole) and their install/upgrade commands: **charts/README.md** (e.g. `helm upgrade --install pihole ./charts/homelab-showcase/charts/pihole -f config/helm-values/pihole.yaml`).
 
@@ -139,7 +139,7 @@ Each node changelog follows this structure:
 ### Documentation audit (when changing paths, charts, or procedures)
 When you move a chart, add a template chart, or change where values live, update **all** of these so the repo stays the single source of truth:
 - **charts/README.md** — chart paths and install/upgrade commands (e.g. Pi-hole).
-- **config/README.md** — helm-values copy list and pointer to charts/README for commands.
+- **config/README.md** — helm-values template → live map for **all** charts; pointer to charts/README for commands.
 - **AGENTS.md** — Config table (helm-values row, template-charts pointer); Skills table (Charts row); this audit list if you add another synced location.
 - **monitoring/README.md** — any workload that affects Grafana/LAN DNS (e.g. Pi-hole cluster vs bare-metal, which node, which values file).
 - **README.md** — repo tree comment for `charts/` if chart layout changes.

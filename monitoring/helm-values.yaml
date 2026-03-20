@@ -1,12 +1,10 @@
-# kube-prometheus-stack values for homelab.
-# Install: see monitoring/README.md and skills/monitoring-stack-setup/SKILL.md
-# Override Grafana password: --set grafana.adminPassword='your-password'
-# Persistence uses local-path (default); Grafana/Prometheus are pinned to dalaran.
+# kube-prometheus-stack — committed TEMPLATE only (no real secrets).
+# Copy to config/helm-values/prometheus-stack.yaml and edit there (see config/README.md).
+# Install: monitoring/README.md, skills/monitoring-stack-setup/SKILL.md
 
 grafana:
   enabled: true
   adminUser: admin
-  # Override at install: --set grafana.adminPassword='...' (do not commit real password)
   adminPassword: OVERRIDE_AT_INSTALL
   # Pin to control plane so image pull works (some workers have flaky registry access)
   nodeSelector:

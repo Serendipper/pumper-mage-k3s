@@ -1,6 +1,5 @@
-# Fallback: provision Loki datasource via ConfigMap only if not using the stack's additionalDataSources.
-# Primary: Loki is provisioned from monitoring/helm-values.yaml (additionalDataSources). After changing
-# that file, run: helm upgrade prometheus-stack ... -f monitoring/helm-values.yaml && kubectl rollout restart deployment -n monitoring prometheus-stack-grafana
+# Fallback ConfigMap — committed template. Prefer additionalDataSources in config/helm-values/prometheus-stack.yaml.
+# If you use this manifest, keep a private copy or gitignored variant; do not commit real cluster-specific edits.
 apiVersion: v1
 kind: ConfigMap
 metadata:
