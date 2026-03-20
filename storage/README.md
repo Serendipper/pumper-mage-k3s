@@ -75,6 +75,6 @@ The kubelet on the node where the pod runs performs the NFS mount when the pod s
 
 ## Reference
 
-- **NAS IP:** From config (same host as K3s datastore in `K3S_DATASTORE_URL`; see AGENTS.md). Do not hardcode; use config/nodes or project.env.
+- **NAS IP:** From config (same host as K3s datastore in `K3S_DATASTORE_URL`; see `docs/agents.md`). Do not hardcode; use config/nodes or project.env.
 - **NFS paths:** `/mnt/ssd_pool/k3s/configs`, `/mnt/ssd_pool/k3s/backups`
 - **Nodes:** Ensure `nfs-common` is installed on any node that will run pods using these volumes (e.g. dalaran already has it).

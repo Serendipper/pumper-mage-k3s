@@ -1,8 +1,6 @@
-# NGINX Ingress Controller — hostNetwork on control plane
-# Binds 80/443 on the node selected by controller.nodeSelector.
-# At install time use --set-json for nodeSelector (chart expects JSON):
-#   --set-json controller.nodeSelector='{"kubernetes.io/hostname":"dalaran"}'
-# Replace dalaran with K3S_CP_HOST from config.
+# ingress-nginx — committed TEMPLATE only. Copy to config/helm-values/ingress-nginx.yaml (see config/README.md).
+# Install/upgrade: helm install|upgrade ... -f config/helm-values/ingress-nginx.yaml
+# Set controller.nodeSelector to your K3S_CP_HOST (e.g. dalaran) in the live file.
 controller:
   hostNetwork: true
   hostPort:

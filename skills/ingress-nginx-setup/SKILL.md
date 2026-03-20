@@ -31,22 +31,15 @@ helm repo update
 
 ## 3. Install the controller
 
-Two common patterns for a homelab with no LoadBalancer:
-
-**Option A — hostNetwork (recommended for single entry point)**  
-Controller binds to ports 80/443 on the node where the pod runs. Use a fixed node (e.g. control plane) so you always hit the same IP. Use `K3S_CP_HOST` from config for the hostname.
+**Recommended:** copy **`ingress/helm-values-hostnetwork.yaml`** to **`config/helm-values/ingress-nginx.yaml`**, set `controller.nodeSelector` to your **`K3S_CP_HOST`**, then install from the **live** file only (see **config/README.md** § *Helm: templates vs live values*).
 
 ```bash
-# From control plane or with kubeconfig. Replace dalaran with your K3S_CP_HOST if different.
 helm install ingress-nginx ingress-nginx/ingress-nginx \
   --namespace ingress-nginx --create-namespace \
-  --set controller.hostNetwork=true \
-  --set controller.hostPort.enabled=true \
-  --set controller.kind=DaemonSet \
-  --set-json controller.nodeSelector='{"kubernetes.io/hostname":"dalaran"}'
+  -f config/helm-values/ingress-nginx.yaml
 ```
 
-Artifacts (values file, example Ingress) live in **ingress/** in the repo. Then HTTP/HTTPS to that node’s IP hit the controller.
+Artifacts (values **template**, example Ingress) live in **ingress/**. HTTP/HTTPS to that node’s IP hit the controller.
 
 **Option B — NodePort**  
 Controller is exposed via a NodePort (e.g. 30080/30443). No hostNetwork; you use `http://<any-node-ip>:30080`.
@@ -122,7 +115,7 @@ Not covered in this skill; see [ingress-nginx TLS](https://kubernetes.github.io/
 
 | Choice | Access |
 |--------|--------|
-| Option A (hostNetwork on dalaran) | `http://<dalaran-ip>/` (port 80) |
-| Option B (NodePort) | `http://<any-node-ip>:30080/` |
+| hostNetwork (live values in `config/helm-values/ingress-nginx.yaml`) | `http://<ingress-node-ip>/` (ports 80/443) |
+| NodePort | `http://<any-node-ip>:30080/` |
 
 After this, create Ingress resources for your apps with `ingressClassName: nginx` and route by host/path.

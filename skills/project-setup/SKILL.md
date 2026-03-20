@@ -5,7 +5,7 @@ description: One-time configuration of this repo: SSH user, node password, key p
 
 # Project Setup
 
-Configure the K3s homelab project once per clone/machine. All cluster-related values live under **config/**; scripts and skills source these files so nothing is hardcoded. This skill creates **config/project.env** (gitignored) for secrets and overrides; **config/defaults.env** (committed) holds non-secret defaults; **config/nodes** is maintained by the agent. CP hostname is **K3S_CP_HOST** in config. See AGENTS.md "Config (config/)" for the full layout.
+Configure the K3s homelab project once per clone/machine. All cluster-related values live under **config/**; scripts and skills source these files so nothing is hardcoded. This skill creates **config/project.env** (gitignored) for secrets and overrides; **config/defaults.env** (committed) holds non-secret defaults; **config/nodes** is maintained by the agent. CP hostname is **K3S_CP_HOST** in config. See `docs/agents.md` "Config Layout" for the full layout.
 
 ## When to use
 
@@ -85,7 +85,7 @@ sshpass -p "$K3S_NODE_PASSWORD" ssh -o StrictHostKeyChecking=accept-new "$K3S_SS
 
 ## Conventions (reference)
 
-Default values match **AGENTS.md**:
+Default values match **docs/agents.md**:
 
 - User: from `K3S_SSH_USER` in config (e.g. serendipper as placeholder; set your user in project.env), password: per your OS install (set in `K3S_NODE_PASSWORD`)
 - SSH key: `~/.ssh/k3s_ed25519` (comment `k3s-homelab`)

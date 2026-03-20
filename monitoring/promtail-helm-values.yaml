@@ -1,5 +1,5 @@
-# Promtail: ship pod logs to Loki. Deploy after Loki is running.
-# Install: helm install promtail grafana/promtail -n monitoring -f monitoring/promtail-helm-values.yaml
+# Promtail — committed TEMPLATE only. Copy to config/helm-values/promtail.yaml (see config/README.md).
+# Install: helm install promtail grafana/promtail -n monitoring -f config/helm-values/promtail.yaml
 
 config:
   lokiAddress: http://loki-gateway/loki/api/v1/push

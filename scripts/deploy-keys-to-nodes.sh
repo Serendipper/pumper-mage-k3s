@@ -27,14 +27,21 @@ fi
 
 PUBKEY=$(cat "${KEY}.pub")
 
-while read -r line; do
-  line="${line%%#*}"
-  trim="${line%%[![:space:]]*}"
-  line="${line#$trim}"
-  [ -z "$line" ] && continue
-  read -r name ip <<< "$line"
-  [ -z "$name" ] && continue
-  echo "--- $name ---"
-  sshpass -p "$PASS" ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$USER@$ip" \
-    "mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo '$PUBKEY' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys" 2>&1 || echo "FAILED (unreachable)"
-done < "$NODES_FILE"
+deploy_loop() {
+  while read -r line; do
+    line="${line%%#*}"
+    trim="${line%%[![:space:]]*}"
+    line="${line#$trim}"
+    [ -z "$line" ] && continue
+    read -r name ip <<< "$line"
+    [ -z "$name" ] && continue
+    echo "--- $name ---"
+    sshpass -p "$PASS" ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$USER@$ip" \
+      "mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo '$PUBKEY' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys" 2>&1 || echo "FAILED (unreachable)"
+  done < "$NODES_FILE"
+}
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$SCRIPT_DIR/lib/spinner.sh"
+export -f deploy_loop
+export PASS USER PUBKEY NODES_FILE
+run_with_spinner "Deploying keys to nodes" -- deploy_loop

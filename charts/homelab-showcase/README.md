@@ -8,7 +8,7 @@ Example Helm chart that demonstrates patterns used in this K3s homelab. **For sh
 |--------|------------------------|
 | **nodeSelector** `kubernetes.io/hostname: <control-plane>` | Grafana, Prometheus, Loki, NGINX Ingress (pinned to control plane for stable image pull / single entry point). |
 | **local-path** PVC | Grafana, Prometheus, Loki, MinIO, Promtail (see `monitoring/`, `ingress/`). |
-| **Ingress** (nginx, host-based) | Grafana at `grafana.lan`; see `monitoring/helm-values.yaml`, `ingress/`. |
+| **Ingress** (nginx, host-based) | Grafana at `grafana.lan`; see `config/helm-values/prometheus-stack.yaml`, `ingress/`. |
 
 ## Install (optional)
 

@@ -24,26 +24,19 @@ Or: `sudo apt install helm` (Debian).
 
 ## 2. Add Helm repo and install
 
-From the repo root (so `monitoring/helm-values.yaml` is available), or copy the values file to the node first.
+From the repo root (so `config/helm-values/prometheus-stack.yaml` exists), or copy the values file to the node first.
 
 ```bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 helm install prometheus-stack prometheus-community/kube-prometheus-stack \
   -n monitoring --create-namespace \
-  -f monitoring/helm-values.yaml
+  -f config/helm-values/prometheus-stack.yaml
 ```
 
-Optional: set Grafana admin password at install (recommended):
+Set Grafana `grafana.adminPassword` (and `adminUser` if needed) in **`config/helm-values/prometheus-stack.yaml`** before install or upgrade so the file matches the cluster (**config/README.md**). Avoid relying on `--set` alone — it updates the release but not that file.
 
-```bash
-helm install prometheus-stack prometheus-community/kube-prometheus-stack \
-  -n monitoring --create-namespace \
-  -f monitoring/helm-values.yaml \
-  --set grafana.adminPassword='your-secure-password'
-```
-
-If running from a machine that doesn't have the repo (e.g. only on the CP), copy the values file to the CP then run the same `helm install` with `-f /path/to/helm-values.yaml`.
+If running from a machine that doesn't have the repo (e.g. only on the CP), copy **`config/helm-values/prometheus-stack.yaml`** to the CP then run the same `helm install` with `-f /path/to/that/file`.
 
 ## 3. Wait for pods
 
@@ -56,17 +49,19 @@ Wait until the stack pods are Running (Prometheus, Grafana, node-exporter, kube-
 ## 4. Access Grafana
 
 - URL: http://grafana.lan (or http://&lt;control-plane-IP&gt; with header `Host: grafana.lan` if you don't have DNS).
-- Login: `admin` / password from values or the one you set with `--set grafana.adminPassword=...`.
+- Login: `grafana.adminUser` / `grafana.adminPassword` from **`config/helm-values/prometheus-stack.yaml`** (or read from the cluster secret as in **monitoring/README.md**).
 
 Prometheus is used by Grafana as a datasource; it is not exposed by default. To expose it, add an Ingress or use `kubectl port-forward`.
 
 ## 5. Persistence (local-path) and Loki
 
+**Node placement:** With **local-path**, the Prometheus **PVC is created on whichever node the pod first schedules on** (subject to `nodeSelector`). Pin **Grafana and Prometheus to the same node** — the repo default is the **control plane** (`dalaran`) so Grafana’s Prometheus datasource does not depend on cross-node pod networking. If Prometheus is **Pending**, do **not** permanently move it to an arbitrary worker just to match an existing PVC; see **`monitoring/README.md` § Design (local-path)** for migration or NFS options.
+
 The repo values enable **Grafana** and **Prometheus** persistence (local-path) and add a **Loki** datasource. If the stack was installed without these, upgrade:
 
 ```bash
 helm upgrade prometheus-stack prometheus-community/kube-prometheus-stack \
-  -n monitoring -f monitoring/helm-values.yaml
+  -n monitoring -f config/helm-values/prometheus-stack.yaml
 ```
 
 If a previous upgrade is stuck (`pending-upgrade`), rollback then re-upgrade:
@@ -75,14 +70,15 @@ If a previous upgrade is stuck (`pending-upgrade`), rollback then re-upgrade:
 helm rollback prometheus-stack 2 -n monitoring
 # wait for rollback to complete, then:
 helm upgrade prometheus-stack prometheus-community/kube-prometheus-stack \
-  -n monitoring -f monitoring/helm-values.yaml
+  -n monitoring -f config/helm-values/prometheus-stack.yaml
 ```
 
 **Loki (logs):** `helm repo add grafana https://grafana.github.io/helm-charts`, then install Loki and Promtail per **monitoring/README.md** (Loki + Promtail section). In Grafana, add the Loki datasource: Connections → Data sources → Add data source → Loki, URL `http://loki-gateway`, Save.
 
 ## Artifacts
 
-- **monitoring/helm-values.yaml** — Grafana Ingress (grafana.lan), persistence (local-path), Prometheus retention + persistence, Loki datasource.
-- **monitoring/loki-helm-values.yaml** — Loki monolithic + MinIO, local-path PVCs.
-- **monitoring/promtail-helm-values.yaml** — Promtail → Loki, persistence for positions.
-- **monitoring/README.md** — Quick reference and install commands.
+- **monitoring/helm-values.yaml** — kube-prometheus-stack **template** (copy to `config/helm-values/prometheus-stack.yaml`).
+- **config/helm-values/prometheus-stack.yaml** — **Live** install/upgrade file (gitignored): Grafana auth, Ingress, persistence, Prometheus, Loki datasource.
+- **monitoring/loki-helm-values.yaml** — **Template** → `config/helm-values/loki.yaml`.
+- **monitoring/promtail-helm-values.yaml** — **Template** → `config/helm-values/promtail.yaml`.
+- **monitoring/README.md** — Quick reference. Full Helm map: **config/README.md**.

@@ -7,7 +7,7 @@ description: Deploy or rebuild the K3s control plane server node with external P
 
 ## Prerequisites
 
-- Debian stable installed (headless, SSH-only). See `AGENTS.md` for OS conventions.
+- Debian stable installed (headless, SSH-only). See `docs/agents.md` for OS conventions.
 - External PostgreSQL accessible; URL in **config/project.env** (`K3S_DATASTORE_URL`) or **config/defaults.env**.
 - Node is on wired ethernet with a known IP.
 
@@ -118,7 +118,7 @@ Also enable WoL in BIOS and disable Deep Sleep Control if present.
 
 ### 8. Hardware Snapshot + Documentation
 
-Run hardware snapshot commands (see `skills/worker-node-setup/SKILL.md` snapshot section) and create `control-plane/<hostname>-<model>.md` following the template in `AGENTS.md`.
+Run hardware snapshot commands (see `skills/worker-node-setup/SKILL.md` snapshot section) and create `control-plane/<hostname>-<model>.md` following the template in `docs/agents.md`.
 
 ## Recovery
 

@@ -57,8 +57,10 @@ Two paths:
 
 Variables you need in both paths:
 
-- **NODE_HOSTNAME** — Kirin Tor hostname (e.g. `modera`, `medivh`). See **AGENTS.md** for naming.
+- **NODE_HOSTNAME** — Kirin Tor hostname (e.g. `modera`, `medivh`). See **docs/agents.md** for naming.
 - **NODE_IP** — Pi’s IP after first boot (from DHCP or scan). Update after reboot if it changes.
+
+**Scripts:** **scripts/pi-worker-os-prep.sh** and **scripts/pi-worker-join.sh** run Phase 2 and Phase 3 for a given `NODE_HOSTNAME` and `NODE_IP`. The join script has no internal timeout (allow ≥10 min if you run it under a wrapper). Long-running steps show a spinner and elapsed time (see **scripts/lib/spinner.sh**).
 
 ---
 
@@ -220,11 +222,13 @@ Then join (run on the Pi via SSH):
 
 ```bash
 K3S_URL="https://${K3S_CP_IP}:${K3S_API_PORT}"
-sshpass -p "$K3S_NODE_PASSWORD" ssh "$K3S_SSH_USER@$NODE_IP" "curl -sfL $K3S_INSTALL_URL | K3S_URL=$K3S_URL K3S_TOKEN=$K3S_TOKEN sudo sh -"
+sshpass -p "$K3S_NODE_PASSWORD" ssh "$K3S_SSH_USER@$NODE_IP" "curl -sfL -4 $K3S_INSTALL_URL | K3S_URL=$K3S_URL K3S_TOKEN=$K3S_TOKEN sudo sh -"
 ```
 
-If the key was deployed in 3.1 you can use:  
-`ssh "$K3S_SSH_USER@$NODE_IP" "curl -sfL $K3S_INSTALL_URL | K3S_URL=$K3S_URL K3S_TOKEN=$K3S_TOKEN sudo sh -"`
+**Pi download slowness:** Pi over Wi‑Fi can take 5–10 minutes to download the ~68 MB binary from GitHub. Use `curl -4` to force IPv4. Do not interrupt the SSH session. No script in this repo runs the join (it is manual/copy‑paste); if you automate this step elsewhere, use a timeout of at least 10 minutes for the join command.
+
+If the key was deployed in 3.1 you can use:
+`ssh "$K3S_SSH_USER@$NODE_IP" "curl -sfL -4 $K3S_INSTALL_URL | K3S_URL=$K3S_URL K3S_TOKEN=$K3S_TOKEN sudo sh -"`
 
 ### 3.3 Label and verify
 
@@ -240,7 +244,7 @@ kubectl get nodes -o wide
 
 - **config/nodes:** Add or update one line: **`NODE_HOSTNAME <IP>`** using the **INTERNAL-IP** from `kubectl get nodes -o wide` (not the IP you used for SSH if it changed).
 - **SSH config:** Run `./scripts/ssh-config-from-nodes.sh` and merge the printed block into your `~/.ssh/config` (or replace the existing K3s block).
-- **Node changelog:** Create or update **nodes/<NODE_HOSTNAME>-<model>.md** (e.g. `nodes/medivh-pi5.md`) from the template in **AGENTS.md** (Node Details, Hardware Snapshot, Change History, Remaining Roadmap, Known Limitations). Use output from the Pi: `lscpu`, `free -h`, `lsblk`, `ip link`, `cat /proc/device-tree/model`.
+- **Node changelog:** Create or update **nodes/<NODE_HOSTNAME>-<model>.md** (e.g. `nodes/medivh-pi5.md`) from the template in **docs/agents.md** (Node Details, Hardware Snapshot, Change History, Remaining Roadmap, Known Limitations). Use output from the Pi: `lscpu`, `free -h`, `lsblk`, `ip link`, `cat /proc/device-tree/model`.
 - **nodes/roadmap.md:** Update the inventory table.
 
 ### Optional after join

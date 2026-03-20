@@ -35,6 +35,8 @@ Every node is named after a mage of the [Kirin Tor](https://wowpedia.fandom.com/
 - **Flannel** — default CNI, works out of the box
 - **Debian stable** — headless, minimal, same OS on every node
 
+Namespaces, NFS/media patterns, and design constraints: **`docs/architecture.md`**. Current workloads and migration status: **`docs/state.md`**.
+
 ## What Hardware Works
 
 Tested on:
@@ -54,7 +56,8 @@ Should also work on: Raspberry Pi 3/4, other ARM SBCs, any x86 machine that runs
 ## Repo Structure
 
 ```
-├── AGENTS.md                        # Agent runbook — project context, conventions, credentials
+├── AGENTS.md                        # Compatibility pointer; canonical runbook is docs/agents.md
+├── docs/                            # agents, architecture, skills index, operational state
 ├── config/                          # defaults.env, project.env.example; project.env & nodes (gitignored)
 ├── skills/
 │   ├── control-plane-setup/         # Deploy the K3s server node
@@ -67,8 +70,8 @@ Should also work on: Raspberry Pi 3/4, other ARM SBCs, any x86 machine that runs
 │   ├── ingress-nginx-setup/         # NGINX Ingress Controller (Helm)
 │   ├── monitoring-stack-setup/      # Prometheus + Grafana (kube-prometheus-stack)
 │   └── training-mode/               # Non-executing walkthrough for learning
-├── ingress/                          # Ingress manifests and Helm values (see skills/ingress-nginx-setup)
-├── monitoring/                       # Prometheus + Grafana Helm values; Grafana at grafana.lan (see skills/monitoring-stack-setup)
+├── ingress/                          # Ingress manifests + Helm values **templates**; live: config/helm-values/ingress-nginx.yaml
+├── monitoring/                       # kube-prometheus-stack, Loki, Promtail values **templates**; live: config/helm-values/*.yaml
 ├── storage/                          # NFS storage notes + PV/PVC (TrueNAS exports); see storage/README.md
 ├── control-plane/
 │   └── dalaran-3080sff.md          # Control plane hardware + change history
@@ -109,11 +112,11 @@ The agent switches to a non-executing mode: it explains every step, shows the co
 
 ## Agent Compatibility
 
-This repo uses the `AGENTS.md` + `SKILL.md` open standard. It works with any AI coding agent that reads markdown context from the repo:
+This repo uses the `AGENTS.md` + `SKILL.md` compatibility pattern, with canonical runbook content in `docs/agents.md`:
 
-- **Cursor** — auto-discovers via `.cursor/rules/k3s-project.mdc`
-- **GitHub Copilot** — reads `AGENTS.md` from repo root
-- **Other agents** — point them at `AGENTS.md` and the `skills/` directory
+- **Cursor** — optional `.cursor/rules/*.mdc` in your working copy (gitignored); point at `docs/agents.md` and `skills/`
+- **GitHub Copilot / compatible tools** — `AGENTS.md` remains as a pointer for compatibility
+- **Other agents** — point them at `docs/agents.md` and the `skills/` directory
 
 ## Laptop Considerations
 

@@ -125,7 +125,7 @@ kubectl get nodes
 helm list -A
 ```
 
-Once this is done, the agent will use local helm/kubectl for cluster changes when available (see AGENTS.md).
+Once this is done, the agent will use local helm/kubectl for cluster changes when available (see `docs/agents.md`).
 
 ## 8. Full install (all-in-one)
 

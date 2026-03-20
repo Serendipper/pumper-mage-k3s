@@ -9,7 +9,7 @@ Runs [Pi-hole](https://pi-hole.net/) as a pod on a single node. Uses **hostNetwo
 
 ## Install
 
-1. **Copy values** (optional; for overrides):
+1. **Copy template → live values** (required; committed `values.yaml` is a template only — **config/README.md**):
 
    ```bash
    mkdir -p config/helm-values
@@ -32,9 +32,9 @@ Runs [Pi-hole](https://pi-hole.net/) as a pod on a single node. Uses **hostNetwo
 
    ```bash
    helm upgrade --install pihole ./charts/homelab-showcase/charts/pihole -f config/helm-values/pihole.yaml
-   # Or without overrides:
-   helm upgrade --install pihole ./charts/homelab-showcase/charts/pihole --set webPassword='your-password'
    ```
+
+   If you use `--set` for a one-off fix, mirror the same fields into **`config/helm-values/pihole.yaml`** before you forget.
 
 4. **Point clients at Pi-hole**:
 

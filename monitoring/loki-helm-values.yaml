@@ -1,5 +1,5 @@
-# Loki monolithic + MinIO on local storage (local-path PVCs).
-# Install: helm install loki grafana/loki -n monitoring -f monitoring/loki-helm-values.yaml
+# Loki — committed TEMPLATE only. Copy to config/helm-values/loki.yaml (see config/README.md).
+# Install: helm install loki grafana/loki -n monitoring -f config/helm-values/loki.yaml
 # Requires: helm repo add grafana https://grafana.github.io/helm-charts
 
 loki:
