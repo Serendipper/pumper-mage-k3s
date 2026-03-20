@@ -1,3 +1,6 @@
+# Cursor — local rules only (not shared; each clone maintains its own)
+.cursor/
+
 # Local project config (secrets); see config/project.env.example
 config/project.env
 

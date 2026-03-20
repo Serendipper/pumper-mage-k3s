@@ -111,7 +111,7 @@ The agent switches to a non-executing mode: it explains every step, shows the co
 
 This repo uses the `AGENTS.md` + `SKILL.md` open standard. It works with any AI coding agent that reads markdown context from the repo:
 
-- **Cursor** — auto-discovers via `.cursor/rules/k3s-project.mdc`
+- **Cursor** — optional `.cursor/rules/*.mdc` in your working copy (gitignored); same content can point at `AGENTS.md` and `skills/`
 - **GitHub Copilot** — reads `AGENTS.md` from repo root
 - **Other agents** — point them at `AGENTS.md` and the `skills/` directory
 
