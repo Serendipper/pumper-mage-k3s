@@ -36,7 +36,7 @@ Source config so SSID and PSK are set (required for autonomous runs):
 ```bash
 source config/defaults.env
 [ -f config/project.env ] && source config/project.env
-apt install -y wpasupplicant
+apt install -y wpasupplicant iw
 wpa_passphrase "$K3S_WIFI_SSID" "$K3S_WIFI_PSK" > /etc/wpa_supplicant/wpa_supplicant-<iface>.conf
 ```
 
@@ -63,10 +63,30 @@ Bring up the interface:
 ifup <iface>
 ```
 
-Verify IP:
+### 2a. Mandatory WiFi verification (do not skip)
+
+**Agent:** Treat WiFi setup as **incomplete** until every check below succeeds. Run them **on the node** over the current SSH session (usually ethernet). Do not assume `ifup` or `allow-hotplug` worked without evidence.
+
+1. **Layer 2 + SSID** — confirm association to the intended network (`SSID` must match `K3S_WIFI_SSID`):
+
 ```bash
-ip addr show <iface>
+/usr/sbin/iw dev <iface> link
 ```
+
+2. **IPv4 on the WiFi interface:**
+
+```bash
+ip -4 addr show <iface>
+```
+
+3. **Reachability to the control plane over WiFi** — run **on the node**, binding to the WiFi interface. From the repo host, source **config/defaults.env** and **config/project.env** so `K3S_CP_IP` is set, then SSH and run (local shell expands the IP):
+
+```bash
+# example: after source config/*.env
+sshpass -p "$K3S_NODE_PASSWORD" ssh "$K3S_SSH_USER@<node-ip>" "ping -c 3 -I <iface> $K3S_CP_IP"
+```
+
+If any step fails, fix drivers, `wpa_supplicant`, `interfaces` / `interfaces.d`, or RF kill **before** reboot or cluster join. After a later **reboot**, run §2a again if the node will rely on WiFi (see `skills/worker-node-setup/SKILL.md`).
 
 ## 3. Lid Close — Ignore
 
@@ -200,8 +220,7 @@ systemctl is-enabled sleep.target  # should be "masked"
 # Display off service
 systemctl is-enabled display-off
 
-# WiFi connected
-ip addr show <iface> | grep inet
+# WiFi — full §2a checks: `iw dev <iface> link`, `ip -4 addr show <iface>`, `ping -c 3 -I <iface> $K3S_CP_IP`
 
 # Battery (if applicable)
 tlp-stat -b | grep -E "conservation|thresh|Plugin"

@@ -99,12 +99,14 @@ apt install -y curl
 ### 8. Hardware-Specific Hardening
 
 Dispatch based on detection in step 2:
-- **Laptop (dedicated)**: Follow `skills/hardware/laptop/SKILL.md` (WiFi, lid, suspend, display, battery, fan)
+- **Laptop (dedicated)**: Follow `skills/hardware/laptop/SKILL.md` (WiFi **including mandatory §2a verification**, lid, suspend, display, battery, fan)
 - **Laptop (hybrid / daily driver)**: Follow `skills/hardware/laptop-hybrid/SKILL.md` (non-Debian OK, no headless hardening, cordon/drain workflow)
 - **Desktop**: Follow `skills/hardware/desktop/SKILL.md` (WoL, BIOS)
 - **SBC**: Follow `skills/hardware/sbc/SKILL.md` (boot media, ARM quirks)
 
 Do NOT suggest hybrid mode. Only use it if the user explicitly says the laptop is their daily driver or asks about part-time nodes. Dedicated hardware is always preferred.
+
+**Laptops with WiFi configured:** Do not proceed past hardware hardening until **`skills/hardware/laptop/SKILL.md` §2a** (association, IPv4 on WiFi, `ping -I <wifi-iface> $K3S_CP_IP`) has been run and passes.
 
 ### 9. Reboot
 
@@ -118,6 +120,8 @@ Wait for the node to come back. If it switched to WiFi, it may have a new IP —
 source config/defaults.env
 nmap -sn "$K3S_SCAN_SUBNET"
 ```
+
+**Laptop + WiFi:** After the node is reachable again, **re-run laptop §2a** over SSH (same three checks). Ethernet may be unplugged; use the IP that answers SSH. If WiFi fails post-reboot, fix it before cluster join.
 
 ### 10. Hardware Snapshot
 
@@ -158,9 +162,12 @@ Join (run on the new node via SSH; use token from above). K3s URL and install sc
 ```bash
 source config/defaults.env
 [ -f config/project.env ] && source config/project.env
+# Always source defaults.env first so K3S_API_PORT (e.g. 6443) is set — do not build K3S_URL from project.env alone.
 K3S_URL="https://${K3S_CP_IP}:${K3S_API_PORT}"
 curl -sfL "$K3S_INSTALL_URL" | K3S_URL="$K3S_URL" K3S_TOKEN=<token> sh -
 ```
+
+Non-interactive installs must wrap the installer in `sudo` with a password on stdin once (see recent `vargoth` bring-up): e.g. `echo "$K3S_NODE_PASSWORD" | sudo -S env K3S_URL=... K3S_TOKEN=... sh -c 'curl -sfL ... | sh -'`.
 
 ### 12. Label Node
 
@@ -169,9 +176,20 @@ From the control plane (`K3S_CP_HOST` from config), e.g. `./scripts/ssh-node.sh 
 ### 13. Verify
 
 ```bash
+source config/defaults.env
+[ -f config/project.env ] && source config/project.env
+# From CP or any host with kubeconfig:
 k3s kubectl get nodes -o wide
 # New node should show: Ready, role worker
 ```
+
+Reconcile **`config/nodes`** with the **INTERNAL-IP** column for every node (see `AGENTS.md`). Then **test SSH** from the repo using the project key:
+
+```bash
+./scripts/ssh-node.sh <hostname> 'hostname'
+```
+
+**Laptop + WiFi:** If the node is often WiFi-only, confirm `./scripts/ssh-node.sh` reaches the same IP `kubectl` reports (or the IP you intentionally keep in `config/nodes` after reconciliation).
 
 ### 14. Documentation
 

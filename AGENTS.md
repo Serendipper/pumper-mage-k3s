@@ -51,6 +51,7 @@ Current assignments:
 | `antonidas` | Grand Master, killed defending Dalaran | Worker |
 | `khadgar` | Current Archmage, leader of the Council of Six | Worker |
 | `modera` | Council of Six | Worker (Pi 5) |
+| `vargoth` | Archmage Vargoth | Worker |
 
 Next available (Tier 1): `medivh`, `jaina`
 
@@ -157,7 +158,7 @@ Agent skills live in `skills/`. Each subdirectory contains a `SKILL.md` with ste
 | Charts (showcase, Pi-hole) | **charts/README.md** | Template charts and install/upgrade commands; values in config/helm-values/ |
 | NFS storage | `storage/README.md` | TrueNAS NFS exports (configs, backups); static PVs/PVCs for pods |
 | Worker node setup | `skills/worker-node-setup/` | Adding a new worker to the cluster |
-| Laptop hardening | `skills/hardware/laptop/` | WiFi, lid, suspend, battery, fan, display for laptop nodes |
+| Laptop hardening | `skills/hardware/laptop/` | WiFi (mandatory §2a verify: `iw`, IPv4, ping CP via WiFi), lid, suspend, battery, fan, display |
 | Laptop hybrid | `skills/hardware/laptop-hybrid/` | Daily-driver laptop as part-time node; non-Debian distros (Fedora, Arch, etc.) |
 | Desktop setup | `skills/hardware/desktop/` | WoL, BIOS, wired networking for desktop nodes |
 | SBC setup | `skills/hardware/sbc/` | Raspberry Pi, ARM boards, boot media |
