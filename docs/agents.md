@@ -8,6 +8,11 @@ A K3s cluster on repurposed hardware (laptops, desktops, SBCs) with config-drive
 
 ## Conventions
 
+### Secrets and scanning
+
+- Do not commit **`config/project.env`**, **`config/nodes`**, or **`config/helm-values/`** — they are gitignored.
+- Before pushing sensitive edits, run **`pre-commit run --all-files`** (see **`docs/security-hygiene.md`**) so **Gitleaks** can catch accidental secrets.
+
 ### OS
 
 - Debian stable (headless).

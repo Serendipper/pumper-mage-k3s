@@ -1,0 +1,16 @@
+# Gitleaks — https://github.com/gitleaks/gitleaks
+# v8 expects a single top-level [allowlist] table (not [[allowlist]]).
+# Add regexes/paths here only for verified false positives.
+
+title = "pumper-mage-k3s"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Documentation and template placeholders (not live credentials)"
+regexes = [
+  '''YOUR_EMAIL@YOUR_DOMAIN''',
+  '''your-secure-password''',
+  '''OVERRIDE_AT_INSTALL''',
+]

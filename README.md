@@ -111,6 +111,10 @@ If you want to learn instead of having the agent do it:
 
 The agent switches to a non-executing mode: it explains every step, shows the commands, and waits for you to run them and paste the output.
 
+## Secret scanning (developers)
+
+Install **[pre-commit](https://pre-commit.com)** and run **`pre-commit install`** once, then **`pre-commit run --all-files`** before pushing. This runs **[Gitleaks](https://github.com/gitleaks/gitleaks)** using **`.gitleaks.toml`**. Policy and LAN/IP notes: **`docs/security-hygiene.md`**.
+
 ## Agent Compatibility
 
 This repo uses the `AGENTS.md` + `SKILL.md` compatibility pattern, with canonical runbook content in `docs/agents.md`:
