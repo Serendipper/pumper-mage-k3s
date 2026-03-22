@@ -6,7 +6,7 @@ Cluster-related values live under **config/**; scripts and skills source these s
 
 | File / dir | Purpose |
 |------------|---------|
-| **defaults.env** | Non-secret defaults (SSH user, key path, CP hostname/IP, scan subnet, K3s URL/port). |
+| **defaults.env** | Non-secret defaults (SSH user, key path, CP hostname/IP, **`K3S_CP_API_HOST`** for kubectl kubeconfig, scan subnet, K3s URL/port). |
 | **project.env.example** | Template for project.env; copy to project.env and fill in. |
 | **README.md** | This file. |
 

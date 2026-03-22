@@ -21,6 +21,7 @@ Procedural skills live under `skills/*/SKILL.md`. **Cluster layout** → `docs/a
 - `skills/ingress-nginx-setup/SKILL.md` — ingress.
 - `skills/monitoring-stack-setup/SKILL.md` — Prometheus + Grafana.
 - `storage/README.md` — NFS PV/PVC patterns.
+- `docs/control-plane-ip-change.md` — when dalaran’s LAN IP changes (Pi-hole, kubeconfig, nodes file).
 
 ## Learning mode
 

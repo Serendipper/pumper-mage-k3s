@@ -44,6 +44,7 @@ Edit `config/project.env` and set at least:
 | `K3S_WIFI_SSID` | Wi‑Fi network name for nodes (first-boot, wpa_supplicant) | Set in config/defaults.env or project.env |
 | `K3S_WIFI_PSK` | Wi‑Fi password for nodes | Set in config/project.env (required for first-boot and laptop WiFi) |
 | `K3S_CP_IP` | Control plane IP (join URL, jump host) | Set in config/defaults.env or project.env |
+| `K3S_CP_API_HOST` | (optional) Hostname in **local** kubeconfig `server:` URL | Default **`dalaran.lan`** in defaults.env; override in project.env if needed |
 | `K3S_DATASTORE_URL` | PostgreSQL connection string (control plane only) | `postgres://user:pass@host:port/k3s` |
 
 Paths like `~/.ssh/k3s_ed25519` are expanded by the shell when scripts source the file; ensure the key path exists after running **agent-environment-setup** (or point to an existing key). The interactive script sets `chmod 600` for you.
@@ -61,7 +62,7 @@ chmod 600 config/project.env
 - **scripts/ssh-node.sh** — reads **config/nodes** (hostname IP per line); sources **config/defaults.env** then **config/project.env** for key/user/known_hosts.
 - **scripts/ssh-config-from-nodes.sh** — prints SSH config from config/nodes for appending to ~/.ssh/config.
 - **scripts/deploy-keys-to-nodes.sh** — deploys key to all hosts in config/nodes using config/project.env.
-- **skills/agent-environment-setup** — deploy keys using `K3S_NODE_PASSWORD`, `K3S_SSH_USER`, `K3S_SSH_KEY`.
+- **skills/agent-environment-setup** — deploy keys using `K3S_NODE_PASSWORD`, `K3S_SSH_USER`, `K3S_SSH_KEY`; kubeconfig uses `K3S_CP_API_HOST` for the API server hostname.
 - **skills/worker-node-setup** — SSH, jump host, and join URL use `K3S_NODE_PASSWORD`, `K3S_SSH_USER`, `K3S_CP_IP`.
 - **skills/control-plane-setup** — PostgreSQL and K3s config use `K3S_DATASTORE_URL`.
 - **skills/hardware/laptop** — WiFi uses `K3S_WIFI_SSID`, `K3S_WIFI_PSK`.

@@ -81,7 +81,7 @@ The NFS exports are **not** created by the cluster. TrueNAS hosts them. To use t
 
 The kubelet on the node where the pod runs performs the NFS mount when the pod starts. No dynamic provisioning of the export itself — that stays on TrueNAS.
 
-**Media / Plex on NFS:** see **`deploy/kustomize/base/storage/media-apps.yaml`** and apply the full first-party bundle with **`kubectl apply -k deploy/kustomize/base`**. For the **k3s/configs** and **k3s/backups** datasets above, add PV/PVC YAML under **`deploy/kustomize/base/storage/`** (or a Kustomize overlay) when you consume them from workloads.
+**Media / Plex on NFS:** see **`deploy/kustomize/base/storage/media-apps.yaml`** and apply the full first-party bundle with **`kubectl apply -k deploy/kustomize/base`**.
 
 ## Reference
 

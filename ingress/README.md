@@ -6,6 +6,8 @@ Artifacts for the NGINX Ingress Controller on this cluster. Traefik and servicel
 
 **Procedure:** See `skills/ingress-nginx-setup/SKILL.md`.
 
+**Control plane IP vs Ingress:** HTTP `Ingress` rules use **hostnames** (`dalaran.plex`, `openclaw.dalaran.lan`, …). They do **not** embed the control-plane IP. Clients reach nginx on **dalaran** because **Pi-hole** (or LAN DNS) maps those names to the **node IP** where **ingress-nginx** runs (`hostNetwork` + `nodeSelector` to **`dalaran`**). When that IP changes, fix **Pi-hole** Helm values and **`kubectl apply`** any updated Kustomize YAML — see **`docs/agents.md`** § *“Update dalaran” / control plane IP or ingress DNS*.
+
 | File | Purpose |
 |------|---------|
 | `helm-values-hostnetwork.yaml` | **Template** — copy to `config/helm-values/ingress-nginx.yaml`, set `controller.nodeSelector` to your CP hostname. |

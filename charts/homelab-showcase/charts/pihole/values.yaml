@@ -7,62 +7,38 @@ nodeName: modera
 timezone: UTC
 
 # Web admin password. Prefer creating a secret and setting existingSecret (see README).
-# If set here, a Secret will be created; otherwise set existingSecret to an existing Secret name and key.
 webPassword: ""
 
-# Use an existing secret for WEBPASSWORD instead of webPassword. Format: name and key.
 existingSecret: {}  # e.g. { name: pihole-web, key: password }
 
-# Storage
-storageClass: ""    # default StorageClass (K3s local-path) if empty
+storageClass: ""
 persistenceSize: 1Gi
 
-# Image (official multi-arch: amd64, arm64)
 image:
   repository: pihole/pihole
   tag: "latest"
   pullPolicy: IfNotPresent
 
-# Upstream DNS servers Pi-hole will use (semicolon-separated for Pi-hole v6).
 upstreamDns: "8.8.8.8;8.8.4.4;1.1.1.1"
 
-# Custom dnsmasq lines (init copies into PVC; survives restarts). Keep aligned with config/nodes for non-cluster hosts.
-# grafana.lan → control plane (dalaran). Cluster node IPs are refreshed by clusterDnsSync sidecar (03-k8s-nodes.conf).
+# Static dnsmasq lines (init copies to 02-custom-lan.conf on the PVC).
+#
+# DNS is name → IP only (no ports). `cname=foo,dalaran.lan` means the same IP as the
+# ingress/nginx host. You still browse http://grafana.lan, http://dalaran.plex, etc.
+# (port 80); nginx routes by Host header to Plex in-cluster or to TrueNAS for *arr
+# (see deploy/kustomize/base/storage/plex-ingress-dalaran.yaml). You do not point
+# dalaran.sonarr at truenas in Pi-hole for that flow — the proxy does that.
+# For direct NAS UI/SMB, use address=/truenas... (below).
+#
+# One A record for dalaran; cname apps here so only address=/dalaran.lan/... changes
+# when the CP LAN IP changes — docs/control-plane-ip-change.md.
 customDnsmasqLines:
-  - "address=/grafana.lan/192.168.1.152"
-  - "address=/aegwynn.lan/192.168.1.182"
-  - "address=/ansirem.lan/192.168.1.133"
-  - "address=/antonidas.lan/192.168.1.169"
-  - "address=/dalaran.lan/192.168.1.152"
-  - "address=/openclaw.dalaran.lan/192.168.1.152"
-  - "address=/jaina.lan/192.168.1.184"
-  - "address=/khadgar.lan/192.168.1.112"
-  - "address=/medivh.lan/192.168.1.217"
-  - "address=/modera.lan/192.168.1.5"
-  - "address=/rhonin.lan/192.168.1.178"
-  - "address=/vargoth.lan/192.168.1.249"
+  - "address=/dalaran.lan/192.168.1.6"
+  - "cname=grafana.lan,dalaran.lan"
+  - "cname=openclaw.dalaran.lan,dalaran.lan"
+  - "cname=dalaran.plex,dalaran.lan"
+  - "cname=dalaran.sonarr,dalaran.lan"
+  - "cname=dalaran.radarr,dalaran.lan"
   - "address=/framework12.lan/192.168.1.188"
-  # TrueNAS UI / SMB / apps on NAS (same IP as NFS server in deploy/kustomize/base/storage/media-apps.yaml).
   - "address=/truenas/192.168.1.200"
   - "address=/truenas.lan/192.168.1.200"
-  # Plex + Sonarr/Radarr UI: HTTP to nginx Ingress on dalaran (proxies *arr to TrueNAS — see deploy/kustomize/base/storage/plex-ingress-dalaran.yaml).
-  - "address=/dalaran.plex/192.168.1.152"
-  - "address=/dalaran.sonarr/192.168.1.152"
-  - "address=/dalaran.radarr/192.168.1.152"
-
-# Sidecar: kubectl get nodes → /etc/dnsmasq.d/03-k8s-nodes.conf, reloads DNS when cluster IPs change.
-clusterDnsSync:
-  enabled: true
-  intervalSeconds: 300
-  localDomain: lan
-  image:
-    # Includes /bin/sh (official registry.k8s.io/kubectl is distroless).
-    repository: bitnami/kubectl
-    tag: "latest"
-    pullPolicy: IfNotPresent
-  resources:
-    requests:
-      cpu: 10m
-      memory: 32Mi
-    limits:
-      memory: 128Mi

@@ -24,12 +24,13 @@ Last updated: 2026-03-21
 - **Ingress (port 80):** `http://dalaran.plex`, `http://dalaran.sonarr`, `http://dalaran.radarr` — Pi-hole resolves these hosts to the **ingress** IP (control plane); nginx routes by `Host` to Plex in-cluster or to Sonarr/Radarr on TrueNAS via Service+Endpoints (`deploy/kustomize/base/storage/plex-ingress-dalaran.yaml`, `deploy/kustomize/base/storage/truenas-arr-external-services.yaml`). **Direct NAS** (SMB/UI): `truenas` / `truenas.lan` → `192.168.1.200` in Pi-hole.
 - **TrueNAS *arr ports:** `deploy/kustomize/base/storage/truenas-arr-external-services.yaml` defaults to **30113** / **30025** (old K3s hostNetwork ports). If TrueNAS publishes different ports, edit Endpoints + Service port + Ingress backend there.
 - **OpenClaw (off-cluster):** `http://openclaw.dalaran.lan` — nginx Ingress on dalaran reverse-proxies to **harmllm** `192.168.1.194:18789` via Service without selector + Endpoints (`deploy/kustomize/base/storage/openclaw-external-gateway.yaml`). UFW on harmllm must allow the ingress path (see `openclaw/docs/reverse-proxy-k3s.md`). Token auth on the gateway still applies.
-- Direct node port (if needed): `http://192.168.1.152:32400` (Plex), etc. Reconcile with `config/nodes`.
+- Direct node port (if needed): `http://192.168.1.6:32400` (Plex), etc. Reconcile with `config/nodes`.
 - Ingress/TLS experiments are separate from config migration; do not drop persistent `/config` to fix URL or cert UX.
 
 ## Operational practices
 
-- Prefer **local** `kubectl` / `helm` from a machine with `KUBECONFIG` set; use SSH to the control plane only as a fallback.
+- Prefer **local** `kubectl` / `helm` from a machine with `KUBECONFIG` set; use SSH to the control plane only as a fallback. Kubeconfig should point the API at **`https://dalaran.lan:6443`** ( **`K3S_CP_API_HOST`** in **config/defaults.env**); see **skills/agent-environment-setup**.
+- **Control plane LAN IP changes:** **`docs/control-plane-ip-change.md`** (Pi-hole static `address=` lines, **`config/nodes`**, kubeconfig).
 - **“Sync”** does not mean rsync; only run rsync when explicitly requested (and without `--delete` to framework12 per project rules).
 
 ## Recent changes / lessons

@@ -107,12 +107,12 @@ sudo apt install -y helm kubectl
 
 **Get kubeconfig from the control plane:**
 
-On the control plane, the kubeconfig is `/etc/rancher/k3s/k3s.yaml`. Copy it to this machine and replace `127.0.0.1` with the control plane IP so the API server is reachable. Use **config** `K3S_CP_IP` or resolve from **config/nodes** by `K3S_CP_HOST`; do not hardcode IPs.
+On the control plane, the kubeconfig is `/etc/rancher/k3s/k3s.yaml`. Copy it to this machine and replace `127.0.0.1` with **`K3S_CP_API_HOST`** (default **`dalaran.lan`**) so `kubectl` talks to **`https://dalaran.lan:6443`** — same name Pi-hole serves for the control plane. Ensure **LAN DNS** resolves that host and that **K3s** lists it in **TLS SANs** (e.g. `tls-san` in `/etc/rancher/k3s/config.yaml`); otherwise `kubectl` may fail TLS verification. Join URLs and SSH still use **`K3S_CP_IP`** / **config/nodes** as before.
 
 ```bash
 source config/defaults.env
 [ -f config/project.env ] && source config/project.env
-ssh "$K3S_CP_HOST" "sudo cat /etc/rancher/k3s/k3s.yaml" | sed "s/127.0.0.1/$K3S_CP_IP/g" > ~/.kube/k3s-config
+ssh "$K3S_CP_HOST" "sudo cat /etc/rancher/k3s/k3s.yaml" | sed "s/127.0.0.1/${K3S_CP_API_HOST}/g" > ~/.kube/k3s-config
 export KUBECONFIG=~/.kube/k3s-config
 # Optional: make it default for your user
 echo 'export KUBECONFIG=~/.kube/k3s-config' >> ~/.bashrc
@@ -138,11 +138,11 @@ Run from repo root. **Prerequisite:** **project-setup** done (`config/project.en
 sudo apt update
 sudo apt install -y sshpass nmap curl jq helm kubectl
 
-# 2. Kubeconfig (replace 127.0.0.1 with CP IP so API is reachable)
+# 2. Kubeconfig (replace 127.0.0.1 with K3S_CP_API_HOST, e.g. dalaran.lan)
 source config/defaults.env && [ -f config/project.env ] && source config/project.env
 mkdir -p ~/.kube
 P="$K3S_NODE_PASSWORD"
-sshpass -p "$P" ssh -o StrictHostKeyChecking=accept-new "$K3S_SSH_USER@$K3S_CP_IP" "echo $P | sudo -S cat /etc/rancher/k3s/k3s.yaml" | sed "s/127.0.0.1/${K3S_CP_IP}/g" > ~/.kube/k3s-config
+sshpass -p "$P" ssh -o StrictHostKeyChecking=accept-new "$K3S_SSH_USER@$K3S_CP_IP" "echo $P | sudo -S cat /etc/rancher/k3s/k3s.yaml" | sed "s/127.0.0.1/${K3S_CP_API_HOST}/g" > ~/.kube/k3s-config
 export KUBECONFIG=~/.kube/k3s-config
 echo 'export KUBECONFIG=~/.kube/k3s-config' >> ~/.bashrc
 
@@ -162,7 +162,7 @@ brew install helm kubectl
 source config/defaults.env && [ -f config/project.env ] && source config/project.env
 mkdir -p ~/.kube
 P="$K3S_NODE_PASSWORD"
-sshpass -p "$P" ssh -o StrictHostKeyChecking=accept-new "$K3S_SSH_USER@$K3S_CP_IP" "echo $P | sudo -S cat /etc/rancher/k3s/k3s.yaml" | sed "s/127.0.0.1/${K3S_CP_IP}/g" > ~/.kube/k3s-config
+sshpass -p "$P" ssh -o StrictHostKeyChecking=accept-new "$K3S_SSH_USER@$K3S_CP_IP" "echo $P | sudo -S cat /etc/rancher/k3s/k3s.yaml" | sed "s/127.0.0.1/${K3S_CP_API_HOST}/g" > ~/.kube/k3s-config
 export KUBECONFIG=~/.kube/k3s-config
 echo 'export KUBECONFIG=~/.kube/k3s-config' >> ~/.bashrc
 
@@ -171,7 +171,7 @@ kubectl get nodes
 helm list -A
 ```
 
-Then: generate SSH key (§1) if needed, run `./scripts/ssh-config-from-nodes.sh >> ~/.ssh/config`, and deploy keys (§4) to nodes. Ensure the agent host has **network access** to the cluster subnet (SSH to nodes; API at `$K3S_CP_IP:6443` for kubectl/helm).
+Then: generate SSH key (§1) if needed, run `./scripts/ssh-config-from-nodes.sh >> ~/.ssh/config`, and deploy keys (§4) to nodes. Ensure the agent host has **network access** to the cluster subnet (SSH to nodes; **kubectl** uses **`https://${K3S_CP_API_HOST}:${K3S_API_PORT}`** from kubeconfig).
 
 ## Integration with Other Skills
 

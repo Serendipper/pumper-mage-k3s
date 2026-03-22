@@ -42,5 +42,5 @@
 
 - Homelab hardware and budget; LAN-first, limited external dependencies.
 - TrueNAS-held data must stay consistent during migration (no silent “blank app” installs unless requested).
-- **No hardcoded IPs** in committed automation — resolve from `config/nodes`, `K3S_CP_IP`, or `K3S_SCAN_SUBNET` as documented in `docs/agents.md`.
+- **No hardcoded IPs** in committed automation — resolve from `config/nodes`, `K3S_CP_IP`, or `K3S_SCAN_SUBNET` as documented in `docs/agents.md`. Local **kubectl** kubeconfig uses **`K3S_CP_API_HOST`** (e.g. `dalaran.lan`), not the raw control-plane IP.
 - Operational safety: avoid accidental destructive syncs or history rewrites without explicit intent.
