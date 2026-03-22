@@ -2,7 +2,7 @@ apiVersion: v2
 name: pihole
 description: Pi-hole DNS and ad-blocking on a single node (hostNetwork). Schedules on modera (Raspberry Pi) by default.
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: "2024.0"
 keywords:
   - pihole

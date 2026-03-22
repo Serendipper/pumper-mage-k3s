@@ -2,7 +2,7 @@
 
 Helm-based deployment of [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack): Prometheus, Grafana, Alertmanager, node-exporter, kube-state-metrics, and default dashboards.
 
-**Convention:** Everything under **`monitoring/`** that feeds Helm (or optional raw manifests) is a **committed template**. **Live** values live only in **`config/helm-values/`** (gitignored). Mapping and workflow: **config/README.md** § *Helm: templates vs live values*.
+**Convention:** Everything under **`monitoring/`** that feeds Helm is a **committed template**. **Live** values live only in **`config/helm-values/`** (gitignored). Optional Grafana datasource YAML now lives under **`deploy/kustomize/base/monitoring/`** (Kustomize bundle). Mapping and workflow: **config/README.md** § *Helm: templates vs live values*.
 
 **Procedure:** See `skills/monitoring-stack-setup/SKILL.md`.
 
@@ -11,7 +11,7 @@ Helm-based deployment of [kube-prometheus-stack](https://github.com/prometheus-c
 | `helm-values.yaml` | `config/helm-values/prometheus-stack.yaml` — Grafana auth, Ingress (`grafana.lan`), persistence, Prometheus, Loki datasource |
 | `loki-helm-values.yaml` | `config/helm-values/loki.yaml` |
 | `promtail-helm-values.yaml` | `config/helm-values/promtail.yaml` |
-| `grafana-datasource-loki.yaml` | Prefer **`additionalDataSources`** in `prometheus-stack.yaml`; this ConfigMap is an optional fallback only (see **config/README.md**) |
+| *(optional ConfigMap)* | `deploy/kustomize/base/monitoring/grafana-datasource-loki.yaml` — prefer **`additionalDataSources`** in `prometheus-stack.yaml`; included in **`kubectl apply -k deploy/kustomize/base`** unless you remove it from the Kustomize base (see **config/README.md**) |
 
 ## Install (from control plane or with kubeconfig)
 
@@ -32,7 +32,7 @@ helm install prometheus-stack prometheus-community/kube-prometheus-stack \
 
 So that **grafana.lan** resolves on your LAN (Windows, phones, etc.), use one of:
 
-- **Pi-hole (cluster, modera):** Custom DNS (e.g. `grafana.lan` → control plane) is set in the chart via `customDnsmasqLines` in **config/helm-values/pihole.yaml**. Install/upgrade: **charts/README.md**. Clients use the Pi-hole node's IP (modera) as their DNS server — set router DHCP DNS to that IP (from **config/nodes**).  
+- **Pi-hole (cluster, modera):** LAN names are in `customDnsmasqLines`; cluster node IPs are refreshed by the **`clusterDnsSync`** sidecar (`03-k8s-nodes.conf`). Live values: **config/helm-values/pihole.yaml** (copy from **charts/homelab-showcase/charts/pihole/values.yaml**). Install/upgrade: **charts/README.md**. Clients use the Pi-hole node's IP (modera) as their DNS server — set router DHCP DNS to that IP (from **config/nodes**).  
 - **Bare-metal Pi-hole** (e.g. on another host): Run `./scripts/setup-pihole-grafana-dns.sh <host>` from the repo when that host is reachable. It adds `grafana.lan` → control plane IP. Clients use that host's IP as their DNS server.
 - **Windows hosts file:** Add `&lt;control-plane-IP&gt;   grafana.lan` to `C:\Windows\System32\drivers\etc\hosts` (edit as Administrator). Control plane IP from **config/nodes** (key `K3S_CP_HOST`) or **config** `K3S_CP_IP`.
 - **Other:** See README "What's Not Included" / Grafana for hosts-file and LAN DNS options.

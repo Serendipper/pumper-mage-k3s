@@ -1,0 +1,34 @@
+{{- if .Values.clusterDnsSync.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "pihole.name" . }}-dns-sync
+  labels:
+    app.kubernetes.io/name: {{ include "pihole.name" . }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "pihole.name" . }}-dns-sync
+  labels:
+    app.kubernetes.io/name: {{ include "pihole.name" . }}
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "pihole.name" . }}-dns-sync
+  labels:
+    app.kubernetes.io/name: {{ include "pihole.name" . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "pihole.name" . }}-dns-sync
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "pihole.name" . }}-dns-sync
+    namespace: {{ .Release.Namespace }}
+{{- end }}

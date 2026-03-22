@@ -1,0 +1,16 @@
+# Let's Encrypt STAGING — use for testing (browser will show untrusted "Fake LE" chain).
+# Replace YOUR_EMAIL and YOUR_DOMAIN before apply. Do not use @example.com — Let's Encrypt rejects it.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    email: YOUR_EMAIL@YOUR_DOMAIN
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-staging-account-key
+    solvers:
+      - http01:
+          ingress:
+            class: nginx

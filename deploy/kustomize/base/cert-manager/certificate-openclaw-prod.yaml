@@ -1,0 +1,14 @@
+# Writes tls secret: openclaw-tls — same name as manual self-signed; backup old secret first if needed.
+# .lan is not a public suffix — Let’s Encrypt will reject; use a public dnsName or DNS-01 / private CA.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: openclaw-dalaran
+  namespace: default
+spec:
+  secretName: openclaw-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - openclaw.dalaran.lan

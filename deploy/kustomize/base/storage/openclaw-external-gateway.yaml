@@ -1,0 +1,48 @@
+# OpenClaw gateway on harmllm (LAN), fronted by nginx Ingress on dalaran.
+# Backend: 192.168.1.194:18789 — see openclaw/docs/reverse-proxy-k3s.md
+# DNS: Pi-hole — openclaw.dalaran.lan → ingress (control plane IP).
+apiVersion: v1
+kind: Service
+metadata:
+  name: openclaw-gateway
+  namespace: default
+spec:
+  ports:
+    - name: http
+      port: 18789
+      targetPort: 18789
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: openclaw-gateway
+  namespace: default
+subsets:
+  - addresses:
+      - ip: 192.168.1.194
+    ports:
+      - name: http
+        port: 18789
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: openclaw
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: openclaw.dalaran.lan
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: openclaw-gateway
+                port:
+                  number: 18789

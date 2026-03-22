@@ -70,9 +70,10 @@ Should also work on: Raspberry Pi 3/4, other ARM SBCs, any x86 machine that runs
 │   ├── ingress-nginx-setup/         # NGINX Ingress Controller (Helm)
 │   ├── monitoring-stack-setup/      # Prometheus + Grafana (kube-prometheus-stack)
 │   └── training-mode/               # Non-executing walkthrough for learning
+├── deploy/kustomize/base/            # First-party K8s YAML (cert-manager CRs, media/NFS, ingress, gateways); `kubectl apply -k deploy/kustomize/base`
 ├── ingress/                          # Ingress manifests + Helm values **templates**; live: config/helm-values/ingress-nginx.yaml
 ├── monitoring/                       # kube-prometheus-stack, Loki, Promtail values **templates**; live: config/helm-values/*.yaml
-├── storage/                          # NFS storage notes + PV/PVC (TrueNAS exports); see storage/README.md
+├── storage/                          # NFS on TrueNAS — **docs**; manifests live under **deploy/kustomize/base/storage/**
 ├── control-plane/
 │   └── dalaran-3080sff.md          # Control plane hardware + change history
 ├── nodes/

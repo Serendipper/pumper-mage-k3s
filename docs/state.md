@@ -1,28 +1,30 @@
 # Current state
 
-Last updated: 2026-03-20
+Last updated: 2026-03-21
 
 ## Media migration (TrueNAS → K3s)
 
 **Scope**
 
-- Migrate: Sonarr, Radarr, Plex  
+- Original migration included Sonarr, Radarr, Plex; **Sonarr and Radarr are decommissioned** from the cluster (workloads + PVs removed; on-disk config under `media-config-import/{sonarr,radarr}` may remain). **Rationale:** those apps are happiest managing libraries and download paths **directly on the NAS** (native paths, permissions, and tooling); wrapping them in Kubernetes/NFS PVCs was an awkward fit compared to running them on TrueNAS, a VM, or another host with real filesystem access to the datasets.
 - Skip: Jellyfin, Postgres (Postgres stays out of this migration; cluster DB usage unchanged)
 
 **Status**
 
-- Sonarr: running in `media` namespace.
-- Radarr: running in `media` namespace.
-- Plex: running in `media` namespace; config on persistent NFS-backed volume (not `emptyDir`).
+- Plex: running in `media` namespace; **config on local hostPath on dalaran** (SQLite-safe); **media library** (and any paths you add) over **NFS** to TrueNAS. In practice Plex is **read-heavy** on library content, which sits well with an NFS mount; it is not the same workload as downloaders/indexers that rename, move, and hardlink all day on the dataset.
 
 **Manifests & paths**
 
-- Workloads: `storage/media-apps.yaml`.
-- Datasets: NFS static PV/PVC to TrueNAS exports (same layout as prior Docker bind mounts).
+- Workloads: `deploy/kustomize/base/storage/media-apps.yaml` (apply via **`kubectl apply -k deploy/kustomize/base`**).
+- **Config PVs:** `hostPath` → `/home/harmless/media-config-import/plex` on **dalaran** (imported via rsync from TrueNAS; private local runbook under `scripts/private-truenas/TRUENAS_PUSH_CONFIG_TO_DALARAN.md`). Legacy Sonarr/Radarr dirs are optional leftovers.
+- **NFS:** `pv-media-library` / `media-library` → Plex `/data` (read-mostly). `pv-media-downloads` / `media-downloads` still defined in the namespace (leftover from when *arr ran here); Plex does not mount it.
 
 **Access (as of last check)**
 
-- Plex: `http://192.168.1.152:32400`, `http://plex.lan:32400` (IPs/hostnames may drift — reconcile with `config/nodes` and live DNS).
+- **Ingress (port 80):** `http://dalaran.plex`, `http://dalaran.sonarr`, `http://dalaran.radarr` — Pi-hole resolves these hosts to the **ingress** IP (control plane); nginx routes by `Host` to Plex in-cluster or to Sonarr/Radarr on TrueNAS via Service+Endpoints (`deploy/kustomize/base/storage/plex-ingress-dalaran.yaml`, `deploy/kustomize/base/storage/truenas-arr-external-services.yaml`). **Direct NAS** (SMB/UI): `truenas` / `truenas.lan` → `192.168.1.200` in Pi-hole.
+- **TrueNAS *arr ports:** `deploy/kustomize/base/storage/truenas-arr-external-services.yaml` defaults to **30113** / **30025** (old K3s hostNetwork ports). If TrueNAS publishes different ports, edit Endpoints + Service port + Ingress backend there.
+- **OpenClaw (off-cluster):** `http://openclaw.dalaran.lan` — nginx Ingress on dalaran reverse-proxies to **harmllm** `192.168.1.194:18789` via Service without selector + Endpoints (`deploy/kustomize/base/storage/openclaw-external-gateway.yaml`). UFW on harmllm must allow the ingress path (see `openclaw/docs/reverse-proxy-k3s.md`). Token auth on the gateway still applies.
+- Direct node port (if needed): `http://192.168.1.152:32400` (Plex), etc. Reconcile with `config/nodes`.
 - Ingress/TLS experiments are separate from config migration; do not drop persistent `/config` to fix URL or cert UX.
 
 ## Operational practices

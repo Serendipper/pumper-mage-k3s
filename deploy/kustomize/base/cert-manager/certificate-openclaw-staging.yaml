@@ -1,0 +1,14 @@
+# Writes tls secret: openclaw-tls-staging (switch Ingress to this name to test staging cert).
+# Let’s Encrypt cannot issue for .lan — replace dnsNames with a public hostname (or use DNS-01 / private CA).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: openclaw-dalaran-staging
+  namespace: default
+spec:
+  secretName: openclaw-tls-staging
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  dnsNames:
+    - openclaw.dalaran.lan

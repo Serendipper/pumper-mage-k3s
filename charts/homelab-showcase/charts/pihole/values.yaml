@@ -24,9 +24,45 @@ image:
   pullPolicy: IfNotPresent
 
 # Upstream DNS servers Pi-hole will use (semicolon-separated for Pi-hole v6).
-upstreamDns: "8.8.8.8;8.8.4.4"
+upstreamDns: "8.8.8.8;8.8.4.4;1.1.1.1"
 
-# Custom dnsmasq lines (applied via env every pod start; survives restarts). Pi-hole v6 FTLCONF_misc_dnsmasq_lines.
-# Example: grafana.lan -> control plane for Ingress. Use control plane IP from config (K3S_CP_IP), not a real IP here.
+# Custom dnsmasq lines (init copies into PVC; survives restarts). Keep aligned with config/nodes for non-cluster hosts.
+# grafana.lan → control plane (dalaran). Cluster node IPs are refreshed by clusterDnsSync sidecar (03-k8s-nodes.conf).
 customDnsmasqLines:
-  - "address=/grafana.lan/192.0.2.1"
+  - "address=/grafana.lan/192.168.1.152"
+  - "address=/aegwynn.lan/192.168.1.182"
+  - "address=/ansirem.lan/192.168.1.133"
+  - "address=/antonidas.lan/192.168.1.169"
+  - "address=/dalaran.lan/192.168.1.152"
+  - "address=/openclaw.dalaran.lan/192.168.1.152"
+  - "address=/jaina.lan/192.168.1.184"
+  - "address=/khadgar.lan/192.168.1.112"
+  - "address=/medivh.lan/192.168.1.217"
+  - "address=/modera.lan/192.168.1.5"
+  - "address=/rhonin.lan/192.168.1.178"
+  - "address=/vargoth.lan/192.168.1.249"
+  - "address=/framework12.lan/192.168.1.188"
+  # TrueNAS UI / SMB / apps on NAS (same IP as NFS server in deploy/kustomize/base/storage/media-apps.yaml).
+  - "address=/truenas/192.168.1.200"
+  - "address=/truenas.lan/192.168.1.200"
+  # Plex + Sonarr/Radarr UI: HTTP to nginx Ingress on dalaran (proxies *arr to TrueNAS — see deploy/kustomize/base/storage/plex-ingress-dalaran.yaml).
+  - "address=/dalaran.plex/192.168.1.152"
+  - "address=/dalaran.sonarr/192.168.1.152"
+  - "address=/dalaran.radarr/192.168.1.152"
+
+# Sidecar: kubectl get nodes → /etc/dnsmasq.d/03-k8s-nodes.conf, reloads DNS when cluster IPs change.
+clusterDnsSync:
+  enabled: true
+  intervalSeconds: 300
+  localDomain: lan
+  image:
+    # Includes /bin/sh (official registry.k8s.io/kubectl is distroless).
+    repository: bitnami/kubectl
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 128Mi

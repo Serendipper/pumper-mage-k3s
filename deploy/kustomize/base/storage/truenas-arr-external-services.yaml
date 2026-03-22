@@ -1,0 +1,48 @@
+# Sonarr / Radarr on TrueNAS — backends for nginx Ingress (media namespace).
+# Pi-hole: dalaran.sonarr / dalaran.radarr → ingress IP; Ingress routes by Host to these Services.
+# Endpoint ports must match what TrueNAS publishes (adjust if your apps use 8988/7878 etc.).
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr-truenas
+  namespace: media
+spec:
+  ports:
+    - name: http
+      port: 30113
+      targetPort: 30113
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: sonarr-truenas
+  namespace: media
+subsets:
+  - addresses:
+      - ip: 192.168.1.200
+    ports:
+      - name: http
+        port: 30113
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr-truenas
+  namespace: media
+spec:
+  ports:
+    - name: http
+      port: 30025
+      targetPort: 30025
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: radarr-truenas
+  namespace: media
+subsets:
+  - addresses:
+      - ip: 192.168.1.200
+    ports:
+      - name: http
+        port: 30025

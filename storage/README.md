@@ -2,6 +2,16 @@
 
 Shared storage for the cluster via NFS exports on TrueNAS. Used for configs, backups, and (optionally) an existing media dataset.
 
+## Kubernetes manifests (PVs, PVCs, media ingress)
+
+**Canonical location:** `deploy/kustomize/base/storage/` (Plex, NFS PV/PVC, media Ingress, OpenClaw gateway, TrueNAS *arr Services). Apply **everything** first-party in one step:
+
+```bash
+kubectl apply -k deploy/kustomize/base
+```
+
+Details: **`deploy/kustomize/README.md`**. Helm charts (monitoring, ingress-nginx, Pi-hole, …) stay separate: `helm upgrade -f config/helm-values/...`.
+
 ## What we did
 
 ### 1. TrueNAS datasets (ZFS)
@@ -71,7 +81,7 @@ The NFS exports are **not** created by the cluster. TrueNAS hosts them. To use t
 
 The kubelet on the node where the pod runs performs the NFS mount when the pod starts. No dynamic provisioning of the export itself — that stays on TrueNAS.
 
-**Next step:** Add static PV/PVC manifests (and optional example pod) under `storage/` when you want to consume these from workloads.
+**Media / Plex on NFS:** see **`deploy/kustomize/base/storage/media-apps.yaml`** and apply the full first-party bundle with **`kubectl apply -k deploy/kustomize/base`**. For the **k3s/configs** and **k3s/backups** datasets above, add PV/PVC YAML under **`deploy/kustomize/base/storage/`** (or a Kustomize overlay) when you consume them from workloads.
 
 ## Reference
 

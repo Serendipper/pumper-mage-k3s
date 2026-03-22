@@ -1,0 +1,23 @@
+# First-party cluster apps (not Helm). Canonical YAML lives in this tree.
+# Apply from repo root:
+#   kubectl apply -k deploy/kustomize/base
+# Or: ./scripts/apply-cluster-manifests.sh
+#
+# Requires: cert-manager controller installed before ACME resources take effect.
+# Edit ClusterIssuers for a real ACME email before relying on Let's Encrypt.
+#
+# LE prod issuer + prod Certificate are NOT in this base — they target public DNS names;
+# .lan names will never validate. When ready, apply manually from
+# deploy/kustomize/base/cert-manager/clusterissuer-letsencrypt-prod.yaml and
+# certificate-openclaw-prod.yaml (see cert-manager/README.md).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - cert-manager/clusterissuer-letsencrypt-staging.yaml
+  - cert-manager/certificate-openclaw-staging.yaml
+  - storage/media-apps.yaml
+  - storage/plex-ingress-dalaran.yaml
+  - storage/truenas-arr-external-services.yaml
+  - storage/openclaw-external-gateway.yaml
+  - monitoring/grafana-datasource-loki.yaml

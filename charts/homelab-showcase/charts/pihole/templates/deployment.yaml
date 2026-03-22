@@ -15,7 +15,16 @@ spec:
     metadata:
       labels:
         app: {{ include "pihole.name" . }}
+      {{- if .Values.customDnsmasqLines }}
+      annotations:
+        # Changing customDnsmasqLines must roll the pod: init copies ConfigMap into the PVC-backed dnsmasq.d.
+        pihole.custom-dns-hash: {{ .Values.customDnsmasqLines | toYaml | sha256sum | quote }}
+      {{- end }}
     spec:
+      {{- if .Values.clusterDnsSync.enabled }}
+      shareProcessNamespace: true
+      serviceAccountName: {{ include "pihole.name" . }}-dns-sync
+      {{- end }}
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       nodeSelector:
@@ -56,7 +65,7 @@ spec:
               value: {{ .Values.timezone | quote }}
             - name: FTLCONF_dns_upstreams
               value: {{ .Values.upstreamDns | quote }}
-            {{- if .Values.customDnsmasqLines }}
+            {{- if or .Values.customDnsmasqLines .Values.clusterDnsSync.enabled }}
             - name: FTLCONF_misc_etc_dnsmasq_d
               value: "true"
             {{- end }}
@@ -89,6 +98,31 @@ spec:
               command: ["/usr/local/bin/pihole", "status"]
             initialDelaySeconds: 30
             periodSeconds: 10
+        {{- if .Values.clusterDnsSync.enabled }}
+        - name: dns-sync
+          image: "{{ .Values.clusterDnsSync.image.repository }}:{{ .Values.clusterDnsSync.image.tag }}"
+          imagePullPolicy: {{ .Values.clusterDnsSync.image.pullPolicy }}
+          command: ["/bin/sh", "/scripts/sync.sh"]
+          env:
+            - name: LOCAL_DOMAIN
+              value: {{ .Values.clusterDnsSync.localDomain | quote }}
+            - name: SYNC_INTERVAL
+              value: {{ .Values.clusterDnsSync.intervalSeconds | toString | quote }}
+          securityContext:
+            runAsUser: 0
+            runAsNonRoot: false
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+          volumeMounts:
+            - name: data
+              mountPath: /etc/dnsmasq.d
+              subPath: dnsmasq.d
+            - name: dns-sync-script
+              mountPath: /scripts
+              readOnly: true
+          resources:
+            {{- toYaml .Values.clusterDnsSync.resources | nindent 12 }}
+        {{- end }}
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -97,6 +131,12 @@ spec:
         - name: custom-dns-config
           configMap:
             name: {{ include "pihole.name" . }}-custom-dns
+        {{- end }}
+        {{- if .Values.clusterDnsSync.enabled }}
+        - name: dns-sync-script
+          configMap:
+            name: {{ include "pihole.name" . }}-dns-sync
+            defaultMode: 0755
         {{- end }}
 ---
 # Optional: expose admin UI via a Service (for cluster-internal access; LAN clients use node IP:80)

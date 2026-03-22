@@ -10,6 +10,7 @@
 - **Helm values:**
   - Committed YAML under `monitoring/`, `ingress/`, `charts/` = **templates only** (safe to commit).
   - Live per-cluster values = `config/helm-values/` (gitignored).
+- **First-party manifests (not Helm):** canonical YAML under `deploy/kustomize/base/` (Kustomize); apply with **`kubectl apply -k deploy/kustomize/base`** (see `deploy/kustomize/README.md`). `storage/` holds operational **documentation** for TrueNAS/NFS; do not assume PV manifests still live there.
 
 ## Infrastructure layer
 
@@ -21,7 +22,7 @@
 ## Application layer
 
 - **`monitoring` namespace:** Prometheus, Grafana, and related stack.
-- **`media` namespace:** Sonarr, Radarr, Plex; shared mounts for media and download datasets.
+- **`media` namespace:** Plex; NFS for the media library (mostly reads). Sonarr/Radarr are not in-cluster — they need direct NAS-side file management and heavy churn on paths, which fits poorly behind generic NFS PVCs in K3s.
 - **Platform:** standard K3s namespaces (`kube-system`, `ingress-nginx`, etc.).
 
 ## Key design decisions

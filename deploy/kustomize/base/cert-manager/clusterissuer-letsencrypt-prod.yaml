@@ -1,0 +1,15 @@
+# Let's Encrypt PRODUCTION — replace YOUR_EMAIL@YOUR_DOMAIN before apply (not @example.com).
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    email: YOUR_EMAIL@YOUR_DOMAIN
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-prod-account-key
+    solvers:
+      - http01:
+          ingress:
+            class: nginx

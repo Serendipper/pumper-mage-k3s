@@ -23,9 +23,13 @@ Cluster-related values live under **config/**; scripts and skills source these s
 | `config/helm-values/pihole.yaml` | `charts/homelab-showcase/charts/pihole/values.yaml` |
 | `config/helm-values/homelab-showcase.yaml` | `charts/homelab-showcase/values.yaml` (if you install the umbrella chart) |
 
-**Not Helm values:** `monitoring/grafana-datasource-loki.yaml` is an optional raw **ConfigMap** fallback; prefer provisioning Loki via `additionalDataSources` in **`config/helm-values/prometheus-stack.yaml`**. Treat that manifest as a template too; if you customize it, keep a private copy under **`config/`** or apply from a gitignored path — do not commit secrets.
+**Not Helm values:** `deploy/kustomize/base/monitoring/grafana-datasource-loki.yaml` is an optional raw **ConfigMap** fallback; prefer provisioning Loki via `additionalDataSources` in **`config/helm-values/prometheus-stack.yaml`**. It ships in the Kustomize base (`kubectl apply -k deploy/kustomize/base`); remove it from **`deploy/kustomize/base/kustomization.yaml`** if you only use Helm provisioning.
 
 Committed Helm **templates** and **example values** live in **monitoring/**, **ingress/**, and **charts/homelab-showcase/** (including **charts/homelab-showcase/charts/pihole/**).
+
+## First-party manifests (Kustomize, not Helm)
+
+Static cluster YAML (cert-manager `ClusterIssuer` / `Certificate`, media PV/PVC, ingress, external gateways, optional Grafana ConfigMap) lives under **`deploy/kustomize/base/`**. Apply with **`kubectl apply -k deploy/kustomize/base`** (or **`./scripts/apply-cluster-manifests.sh`**). See **`deploy/kustomize/README.md`**. This is separate from Helm: upstream apps still use **`helm upgrade -f config/helm-values/...`**.
 
 ## Gitignored (agent / maintainer only — do not publish)
 

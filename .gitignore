@@ -28,3 +28,6 @@ skills/sanitizing-sandbox/
 
 # Syncthing conflict sidecars (never commit)
 *.sync-conflict*
+
+# Local TrueNAS operator helpers/docs (keep private and untracked)
+scripts/private-truenas/

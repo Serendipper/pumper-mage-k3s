@@ -1,0 +1,45 @@
+# Media Ingress on dalaran: Plex in-cluster; Sonarr/Radarr on TrueNAS via external Endpoints.
+# DNS (Pi-hole): dalaran.plex, dalaran.sonarr, dalaran.radarr → control plane / ingress (192.168.1.152). Port 80.
+# TrueNAS direct: truenas / truenas.lan → 192.168.1.200 (see Pi-hole values).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: media-dalaran
+  namespace: media
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: dalaran.plex
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: plex
+                port:
+                  number: 32400
+    - host: dalaran.sonarr
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sonarr-truenas
+                port:
+                  number: 30113
+    - host: dalaran.radarr
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: radarr-truenas
+                port:
+                  number: 30025

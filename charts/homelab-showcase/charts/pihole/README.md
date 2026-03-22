@@ -40,6 +40,8 @@ Runs [Pi-hole](https://pi-hole.net/) as a pod on a single node. Uses **hostNetwo
 
    - The node running Pi-hole may need a **static IP** (e.g. `192.168.1.5`) so the router and LAN clients can use it as DNS. Use `scripts/set-node-static-ip.sh <hostname> <ip/cidr> [gateway]` to configure a node's wlan0 for a static address.
    - In your router or DHCP: set the DNS server to that node's IP.
+   - **Per-machine:** each host must use Pi-hole as its DNS resolver, or names in `customDnsmasqLines` (e.g. `truenas`) will not resolve — `ssh user@truenas` will fail with “Could not resolve hostname” if the client still uses Google DNS / router forwarding that bypasses Pi-hole.
+   - **Verify:** `dig @<pihole-ip> truenas +short` should return the IP you configured.
    - Admin UI: open `http://<node-IP>` in a browser.
 
 ## Values
@@ -52,8 +54,13 @@ Runs [Pi-hole](https://pi-hole.net/) as a pod on a single node. Uses **hostNetwo
 | `existingSecret` | `{ name: <secret>, key: <key> }` for WEBPASSWORD | `{}` |
 | `persistenceSize` | PVC size for config | `1Gi` |
 | `storageClass` | StorageClass for PVC (empty = default) | `""` |
-| `upstreamDns` | Upstream DNS (semicolon-separated, Pi-hole v6) | `8.8.8.8;8.8.4.4` |
-| `customDnsmasqLines` | Custom dnsmasq lines (e.g. `address=/grafana.lan/<control-plane-IP>`); applied via env on every pod start so they survive restarts | See values.yaml |
+| `upstreamDns` | Upstream DNS (semicolon-separated, Pi-hole v6) | Google + `1.1.1.1` — see values.yaml |
+| `customDnsmasqLines` | Static `address=/<host>.lan/<IP>` lines (keep aligned with **config/nodes**); init copies to `02-custom-lan.conf` on the PVC | See values.yaml |
+| `clusterDnsSync` | Sidecar (`dns-sync`) lists **Nodes**, writes `03-k8s-nodes.conf` on the shared PVC, reloads Pi-hole when internal IPs change; requires RBAC on `nodes` | `enabled: true` — see values.yaml |
+
+**clusterDnsSync** uses `shareProcessNamespace: true` so the sidecar can run `chroot /proc/<pihole-FTL-pid>/root pihole restartdns` after updating dnsmasq snippets. Cluster node names resolve as `<node>.<localDomain>` (default `lan`); `03-k8s-nodes.conf` overrides static lines in `02-custom-lan.conf` for the same hostname when the API reports a new IP.
+
+Disable with `clusterDnsSync.enabled: false` if you do not want the sidecar or in-cluster RBAC.
 
 ## Uninstall
 
