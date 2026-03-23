@@ -23,22 +23,21 @@ upstreamDns: "8.8.8.8;8.8.4.4;1.1.1.1"
 
 # Static dnsmasq lines (init copies to 02-custom-lan.conf on the PVC).
 #
-# DNS is name → IP only (no ports). `cname=foo,dalaran.lan` means the same IP as the
-# ingress/nginx host. You still browse http://grafana.lan, http://dalaran.plex, etc.
-# (port 80); nginx routes by Host header to Plex in-cluster or to TrueNAS for *arr
-# (see deploy/kustomize/base/storage/plex-ingress-dalaran.yaml). You do not point
-# dalaran.sonarr at truenas in Pi-hole for that flow — the proxy does that.
-# For direct NAS UI/SMB, use address=/truenas... (below).
+# DNS is name → IP only (no ports). Each host gets its own address=/name/ip — no
+# CNAME chaining. Ingress apps on dalaran share the control-plane / ingress IP below.
+# Browse http://… on port 80; nginx routes by Host (plex-ingress-dalaran.yaml, etc.).
+# Direct NAS: address=/truenas… (below).
 #
-# One A record for dalaran; cname apps here so only address=/dalaran.lan/... changes
-# when the CP LAN IP changes — docs/control-plane-ip-change.md.
+# When the ingress / control-plane LAN IP changes, update every address= line that
+# points at that IP — docs/control-plane-ip-change.md.
 customDnsmasqLines:
+  - "address=/dalaran/192.168.1.6"
   - "address=/dalaran.lan/192.168.1.6"
-  - "cname=grafana.lan,dalaran.lan"
-  - "cname=openclaw.dalaran.lan,dalaran.lan"
-  - "cname=dalaran.plex,dalaran.lan"
-  - "cname=dalaran.sonarr,dalaran.lan"
-  - "cname=dalaran.radarr,dalaran.lan"
+  - "address=/dalaran.plex/192.168.1.6"
+  - "address=/dalaran.radarr/192.168.1.6"
+  - "address=/dalaran.sonarr/192.168.1.6"
+  - "address=/grafana.lan/192.168.1.6"
+  - "address=/openclaw.dalaran.lan/192.168.1.6"
   - "address=/framework12.lan/192.168.1.188"
   - "address=/truenas/192.168.1.200"
   - "address=/truenas.lan/192.168.1.200"

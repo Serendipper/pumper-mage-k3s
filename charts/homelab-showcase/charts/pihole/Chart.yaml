@@ -2,7 +2,7 @@ apiVersion: v2
 name: pihole
 description: Pi-hole DNS (hostNetwork); static LAN names via customDnsmasqLines.
 type: application
-version: 0.4.1
+version: 0.4.3
 appVersion: "2024.0"
 keywords:
   - pihole

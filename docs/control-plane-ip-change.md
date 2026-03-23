@@ -4,7 +4,7 @@ Use this checklist when **dalaran** (or whatever hosts the API / ingress) gets a
 
 1. **`config/nodes`** — Update the `dalaran` line to the new address (gitignored).
 
-2. **Pi-hole** — In **`charts/.../pihole/values.yaml`** (and live **`config/helm-values/pihole.yaml`**), update **only** **`address=/dalaran.lan/<new-ip>`**. App hostnames use **`cname=...,dalaran.lan`** in that file, so they follow the control-plane name without separate IP edits. Hosts that are **not** on dalaran (e.g. **`truenas`**, **`framework12.lan`**) stay as their own **`address=`** lines.
+2. **Pi-hole** — In **`charts/.../pihole/values.yaml`** (and live **`config/helm-values/pihole.yaml`**), update **every** **`address=/.../<ip>`** line that pointed at the **old** control-plane / ingress IP — e.g. **`dalaran`** (short name), **`dalaran.lan`**, **`dalaran.plex`**, **`grafana.lan`**, **`openclaw.dalaran.lan`**, **`dalaran.sonarr`**, **`dalaran.radarr`**, etc. Hosts that are **not** on dalaran (e.g. **`truenas`**, **`framework12.lan`**) stay unchanged unless their IPs moved.
 
 3. **Deploy Pi-hole** — From repo root, with a working kubeconfig:
    `helm upgrade --install pihole ./charts/homelab-showcase/charts/pihole -f config/helm-values/pihole.yaml`
@@ -16,4 +16,4 @@ Use this checklist when **dalaran** (or whatever hosts the API / ingress) gets a
 
 6. **Node changelog** — **`control-plane/dalaran-*.md`** if you track IP history there.
 
-After Pi-hole picks up the new values, **`dig @<pihole-node-ip> dalaran.lan`** should return the new control-plane IP.
+After Pi-hole picks up the new values, **`dig @<pihole-node-ip> dalaran`** and **`dig @<pihole-node-ip> dalaran.lan`** should return the new control-plane IP.

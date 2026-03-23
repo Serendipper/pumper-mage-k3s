@@ -107,7 +107,7 @@ sudo apt install -y helm kubectl
 
 **Get kubeconfig from the control plane:**
 
-On the control plane, the kubeconfig is `/etc/rancher/k3s/k3s.yaml`. Copy it to this machine and replace `127.0.0.1` with **`K3S_CP_API_HOST`** (default **`dalaran.lan`**) so `kubectl` talks to **`https://dalaran.lan:6443`** — same name Pi-hole serves for the control plane. Ensure **LAN DNS** resolves that host and that **K3s** lists it in **TLS SANs** (e.g. `tls-san` in `/etc/rancher/k3s/config.yaml`); otherwise `kubectl` may fail TLS verification. Join URLs and SSH still use **`K3S_CP_IP`** / **config/nodes** as before.
+On the control plane, the kubeconfig is `/etc/rancher/k3s/k3s.yaml`. Copy it to this machine and replace `127.0.0.1` with **`K3S_CP_API_HOST`** (default **`dalaran.lan`**) so `kubectl` talks to **`https://dalaran.lan:6443`** — Pi-hole also serves the short name **`dalaran`** to the same IP (see **Pi-hole** `customDnsmasqLines`). Ensure **LAN DNS** resolves **`K3S_CP_API_HOST`** and that **K3s** lists it in **TLS SANs** (e.g. `tls-san` in `/etc/rancher/k3s/config.yaml`); otherwise `kubectl` may fail TLS verification. Join URLs and SSH still use **`K3S_CP_IP`** / **config/nodes** as before.
 
 ```bash
 source config/defaults.env

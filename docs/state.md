@@ -1,6 +1,6 @@
 # Current state
 
-Last updated: 2026-03-21
+Last updated: 2026-03-22
 
 ## Media migration (TrueNAS → K3s)
 
@@ -30,7 +30,7 @@ Last updated: 2026-03-21
 ## Operational practices
 
 - Prefer **local** `kubectl` / `helm` from a machine with `KUBECONFIG` set; use SSH to the control plane only as a fallback. Kubeconfig should point the API at **`https://dalaran.lan:6443`** ( **`K3S_CP_API_HOST`** in **config/defaults.env**); see **skills/agent-environment-setup**.
-- **Control plane LAN IP changes:** **`docs/control-plane-ip-change.md`** (Pi-hole static `address=` lines, **`config/nodes`**, kubeconfig).
+- **Control plane LAN IP changes:** **`docs/control-plane-ip-change.md`** (Pi-hole static `address=` lines for **`dalaran`**, **`dalaran.lan`**, and ingress names; **`config/nodes`**, kubeconfig).
 - **“Sync”** does not mean rsync; only run rsync when explicitly requested (and without `--delete` to framework12 per project rules).
 
 ## Recent changes / lessons
