@@ -1,6 +1,6 @@
 # Current state
 
-Last updated: 2026-03-22
+Last updated: 2026-03-28
 
 ## Media migration (TrueNAS → K3s)
 
@@ -16,22 +16,23 @@ Last updated: 2026-03-22
 **Manifests & paths**
 
 - Workloads: `deploy/kustomize/base/storage/media-apps.yaml` (apply via **`kubectl apply -k deploy/kustomize/base`**).
-- **Config PVs:** `hostPath` → `/home/harmless/media-config-import/plex` on **dalaran** (imported via rsync from TrueNAS; private local runbook under `scripts/private-truenas/TRUENAS_PUSH_CONFIG_TO_DALARAN.md`). Legacy Sonarr/Radarr dirs are optional leftovers.
+- **Config PVs:** `hostPath` → `/home/serendipper/media-config-import/plex` on **dalaran** (imported via rsync from TrueNAS; private local runbook under `scripts/private-truenas/TRUENAS_PUSH_CONFIG_TO_DALARAN.md`). Legacy Sonarr/Radarr dirs are optional leftovers.
 - **NFS:** `pv-media-library` / `media-library` → Plex `/data` (read-mostly). `pv-media-downloads` / `media-downloads` still defined in the namespace (leftover from when *arr ran here); Plex does not mount it.
 
 **Access (as of last check)**
 
-- **Ingress (port 80):** `http://dalaran.plex`, `http://dalaran.sonarr`, `http://dalaran.radarr` — Pi-hole resolves these hosts to the **ingress** IP (control plane); nginx routes by `Host` to Plex in-cluster or to Sonarr/Radarr on TrueNAS via Service+Endpoints (`deploy/kustomize/base/storage/plex-ingress-dalaran.yaml`, `deploy/kustomize/base/storage/truenas-arr-external-services.yaml`). **Direct NAS** (SMB/UI): `truenas` / `truenas.lan` → `192.168.1.200` in Pi-hole.
+- **Ingress (port 80):** `http://dalaran.plex`, `http://dalaran.sonarr`, `http://dalaran.radarr` — Pi-hole resolves these hosts to the **ingress** IP (control plane); nginx routes by `Host` to Plex in-cluster or to Sonarr/Radarr on TrueNAS via Service+Endpoints (`deploy/kustomize/base/storage/plex-ingress-dalaran.yaml`, `deploy/kustomize/base/storage/truenas-arr-external-services.yaml`). **Direct NAS** (SMB/UI): `truenas` / `truenas.lan` → NAS LAN IP in Pi-hole (see **`config/nodes`** for **truenas**).
 - **TrueNAS *arr ports:** `deploy/kustomize/base/storage/truenas-arr-external-services.yaml` defaults to **30113** / **30025** (old K3s hostNetwork ports). If TrueNAS publishes different ports, edit Endpoints + Service port + Ingress backend there.
-- **OpenClaw (off-cluster):** `http://openclaw.dalaran.lan` — nginx Ingress on dalaran reverse-proxies to **harmllm** `192.168.1.194:18789` via Service without selector + Endpoints (`deploy/kustomize/base/storage/openclaw-external-gateway.yaml`). UFW on harmllm must allow the ingress path (see `openclaw/docs/reverse-proxy-k3s.md`). Token auth on the gateway still applies.
+- **OpenClaw (off-cluster):** `http://openclaw.dalaran.lan` — nginx Ingress on dalaran reverse-proxies to the **OpenClaw backend host** (LAN IP + port in `deploy/kustomize/base/storage/openclaw-external-gateway.yaml`; placeholder in-repo). Allow the ingress path on that host’s firewall (see `openclaw/docs/reverse-proxy-k3s.md`). Token auth on the gateway still applies.
 - Direct node port (if needed): `http://192.168.1.6:32400` (Plex), etc. Reconcile with `config/nodes`.
 - Ingress/TLS experiments are separate from config migration; do not drop persistent `/config` to fix URL or cert UX.
 
 ## Operational practices
 
 - Prefer **local** `kubectl` / `helm` from a machine with `KUBECONFIG` set; use SSH to the control plane only as a fallback. Kubeconfig should point the API at **`https://dalaran.lan:6443`** ( **`K3S_CP_API_HOST`** in **config/defaults.env**); see **skills/agent-environment-setup**.
+- **Worker LAN (2026-03):** Laptops use **Ethernet as primary**; **Wi‑Fi remains configured** as backup. **`kubectl get nodes -o wide`** INTERNAL-IP should track the primary interface; if a node falls back to Wi‑Fi, reconcile **`config/nodes`** and per-node changelogs with the live address.
 - **Control plane LAN IP changes:** **`docs/control-plane-ip-change.md`** (Pi-hole static `address=` lines for **`dalaran`**, **`dalaran.lan`**, and ingress names; **`config/nodes`**, kubeconfig).
-- **“Sync”** does not mean rsync; only run rsync when explicitly requested (and without `--delete` to framework12 per project rules).
+- **“Sync”** does not mean rsync; only run rsync when explicitly requested (and without `--delete` to a named maintenance host per project rules).
 
 ## Recent changes / lessons
 

@@ -38,7 +38,7 @@ kubectl describe certificate -n default openclaw-dalaran-staging
 
 When **`Ready=True`** on staging, add prod issuers/certificates to the base (or apply prod YAML) and re-run **`kubectl apply -k deploy/kustomize/base`**.
 
-**harmllm:** ensure **`gateway.controlUi.allowedOrigins`** still includes **`https://openclaw.dalaran.lan`** and **`https://openclaw.dalaran.lan:31935`** (or **:443** if you move off NodePort).
+**OpenClaw backend host:** ensure **`gateway.controlUi.allowedOrigins`** still includes **`https://openclaw.dalaran.lan`** and **`https://openclaw.dalaran.lan:31935`** (or **:443** if you move off NodePort).
 
 ## Files (under `deploy/kustomize/base/cert-manager/`)
 

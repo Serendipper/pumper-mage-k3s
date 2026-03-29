@@ -42,6 +42,18 @@ A K3s cluster on repurposed hardware (laptops, desktops, SBCs) with config-drive
 - If Pi-hole is correct (kubectl/Helm, or `dig @pihole` OK) but **default** lookup fails or is stale: **action first** — **`resolvectl flush-caches`**, then cycle the active connection (**`nmcli connection down <name> && nmcli connection up <name>`** on the Wi‑Fi/Ethernet profile; **`sudo`** may be required in some sessions). Re-check with **`dig name`** / **`getent`**. Avoid long DNS theory before that.
 - **Do not** claim “no client renew needed” after Pi-hole edits. The **server** may be fine while **this machine’s** resolver stack still has **stale routes or cache**; a **connection cycle** (DHCP renew) plus **flush** has fixed real cases where default `dig` was wrong despite Pi-hole being correct.
 
+#### Operator workstation — Wi‑Fi DHCP renew (this machine, Fedora / NetworkManager)
+
+When the user asks to **renew DHCP** or **bounce Wi‑Fi** and expects the link to **drop and reconnect**, run **only** this (no `reapply` / no alternate flows unless they ask). **Do not** hardcode Wi‑Fi profile names or SSIDs in commands you paste into the repo — resolve the active Wi‑Fi **connection** name at runtime:
+
+```bash
+WF=$(nmcli -t -f NAME,TYPE connection show --active | awk -F: '$2=="802-11-wireless"{print $1;exit}')
+nmcli connection down "$WF" && nmcli connection up "$WF"
+```
+
+- **Do not** substitute `nmcli device reapply` on the wireless interface for this request; that does not do the same full down/up cycle.
+- If activation warns about missing PSK, NetworkManager usually still reconnects from saved secrets; if it fails, run **`nmcli connection up "$WF" --ask`** in a real terminal (requires a TTY).
+
 ## SSH access
 
 - From agent context: **`./scripts/ssh-node.sh <hostname> '<command>'`** (run from repo root). The script sources **`config/defaults.env`** then **`config/project.env`**, so key path and **`K3S_SSH_USER`** match this machine — including the override in gitignored **`project.env`**.
@@ -80,7 +92,7 @@ Commands the agent runs on **this** workstation may still fail with *“a termin
 
 - The word “sync” does **not** imply rsync.
 - Run rsync only when the user explicitly asks.
-- When rsync to framework12 is explicitly requested, do **not** use `--delete`.
+- When rsync to a **named maintenance / operator machine** is explicitly requested, do **not** use `--delete`.
 
 ## Config layout
 

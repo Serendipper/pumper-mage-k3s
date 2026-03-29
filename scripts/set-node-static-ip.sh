@@ -2,6 +2,11 @@
 # Set a node's wlan0 to a static IP using netplan.
 # WiFi SSID/PSK from config/project.env. Node's current IP from config/nodes.
 #
+# **Static on Ethernet instead (Pi):** see **`nodes/modera-rpi5.md`** (2026-03-29). On a Pi with
+# NetworkManager, use **`nmcli`** to move **`192.168.1.5`** from **`wlan0`** to **`eth0`**, set **`wlan0`**
+# to DHCP, then add **`/etc/systemd/system/k3s-agent.service.d/node-ip.conf`** with
+# **`k3s agent --node-ip=<eth0 IPv4>`** so Flannel matches the wired address.
+#
 # Usage: ./scripts/set-node-static-ip.sh <hostname> <static_ip/cidr> [gateway]
 # Example: ./scripts/set-node-static-ip.sh mynode 192.168.1.5/24 192.168.1.1
 #

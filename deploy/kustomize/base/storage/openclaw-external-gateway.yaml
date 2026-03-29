@@ -1,5 +1,5 @@
-# OpenClaw gateway on harmllm (LAN), fronted by nginx Ingress on dalaran.
-# Backend: 192.168.1.194:18789 — see openclaw/docs/reverse-proxy-k3s.md
+# OpenClaw gateway on an off-cluster LAN host, fronted by nginx Ingress on dalaran.
+# Backend IP: placeholder below (RFC 5737 TEST-NET). Replace with your OpenClaw host from config/helm-values overlay.
 # DNS: Pi-hole — openclaw.dalaran.lan → ingress (control plane IP).
 apiVersion: v1
 kind: Service
@@ -19,7 +19,7 @@ metadata:
   namespace: default
 subsets:
   - addresses:
-      - ip: 192.168.1.194
+      - ip: 192.0.2.30
     ports:
       - name: http
         port: 18789

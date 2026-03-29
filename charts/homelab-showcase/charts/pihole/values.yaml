@@ -30,6 +30,8 @@ upstreamDns: "8.8.8.8;8.8.4.4;1.1.1.1"
 #
 # When the ingress / control-plane LAN IP changes, update every address= line that
 # points at that IP — docs/control-plane-ip-change.md.
+# Optional hosts (e.g. maintenance laptop, extra LAN names) belong in gitignored
+# config/helm-values/pihole.yaml — do not commit site-specific /24 addresses above .99 here.
 customDnsmasqLines:
   - "address=/dalaran/192.168.1.6"
   - "address=/dalaran.lan/192.168.1.6"
@@ -38,6 +40,6 @@ customDnsmasqLines:
   - "address=/dalaran.sonarr/192.168.1.6"
   - "address=/grafana.lan/192.168.1.6"
   - "address=/openclaw.dalaran.lan/192.168.1.6"
-  - "address=/framework12.lan/192.168.1.188"
-  - "address=/truenas/192.168.1.200"
-  - "address=/truenas.lan/192.168.1.200"
+  # NAS / services often use x≥100 on /24 — placeholder TEST-NET (replace in overlay with real NAS IP).
+  - "address=/truenas/192.0.2.20"
+  - "address=/truenas.lan/192.0.2.20"

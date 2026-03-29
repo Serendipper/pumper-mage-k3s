@@ -4,7 +4,7 @@ Use this checklist when **dalaran** (or whatever hosts the API / ingress) gets a
 
 1. **`config/nodes`** — Update the `dalaran` line to the new address (gitignored).
 
-2. **Pi-hole** — In **`charts/.../pihole/values.yaml`** (and live **`config/helm-values/pihole.yaml`**), update **every** **`address=/.../<ip>`** line that pointed at the **old** control-plane / ingress IP — e.g. **`dalaran`** (short name), **`dalaran.lan`**, **`dalaran.plex`**, **`grafana.lan`**, **`openclaw.dalaran.lan`**, **`dalaran.sonarr`**, **`dalaran.radarr`**, etc. Hosts that are **not** on dalaran (e.g. **`truenas`**, **`framework12.lan`**) stay unchanged unless their IPs moved.
+2. **Pi-hole** — In **`charts/.../pihole/values.yaml`** (and live **`config/helm-values/pihole.yaml`**), update **every** **`address=/.../<ip>`** line that pointed at the **old** control-plane / ingress IP — e.g. **`dalaran`** (short name), **`dalaran.lan`**, **`dalaran.plex`**, **`grafana.lan`**, **`openclaw.dalaran.lan`**, **`dalaran.sonarr`**, **`dalaran.radarr`**, etc. Hosts that are **not** on dalaran (e.g. **`truenas`**, extra static names for an operator laptop) stay unchanged unless their IPs moved.
 
 3. **Deploy Pi-hole** — From repo root, with a working kubeconfig:
    `helm upgrade --install pihole ./charts/homelab-showcase/charts/pihole -f config/helm-values/pihole.yaml`

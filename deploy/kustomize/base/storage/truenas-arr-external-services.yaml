@@ -19,7 +19,7 @@ metadata:
   namespace: media
 subsets:
   - addresses:
-      - ip: 192.168.1.200
+      - ip: 192.0.2.20
     ports:
       - name: http
         port: 30113
@@ -42,7 +42,7 @@ metadata:
   namespace: media
 subsets:
   - addresses:
-      - ip: 192.168.1.200
+      - ip: 192.0.2.20
     ports:
       - name: http
         port: 30025

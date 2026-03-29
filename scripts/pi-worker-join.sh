@@ -6,7 +6,7 @@
 # See scripts/runbook-worker-pi.md for full procedure.
 #
 # Usage: ./scripts/pi-worker-join.sh <NODE_HOSTNAME> <NODE_IP>
-# Example: ./scripts/pi-worker-join.sh medivh 192.168.1.217
+# Example: ./scripts/pi-worker-join.sh medivh 192.168.1.50
 
 set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -19,7 +19,7 @@ cd "$REPO_ROOT"
 
 if [ $# -lt 2 ]; then
   echo "Usage: $0 <NODE_HOSTNAME> <NODE_IP>" >&2
-  echo "Example: $0 medivh 192.168.1.217" >&2
+  echo "Example: $0 medivh 192.168.1.50" >&2
   exit 1
 fi
 

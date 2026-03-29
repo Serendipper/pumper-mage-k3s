@@ -125,7 +125,7 @@ Then set variables (use the IP you found):
 ```bash
 source config/defaults.env && source config/project.env
 NODE_HOSTNAME=modera   # or medivh, etc.
-NODE_IP=192.168.1.217 # use the IP you found
+NODE_IP=192.168.1.50 # example in /24; use the IP you found
 ```
 
 ---

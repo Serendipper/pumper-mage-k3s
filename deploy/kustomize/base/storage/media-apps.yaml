@@ -15,7 +15,8 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   nfs:
-    server: 192.168.1.200
+    # Placeholder (RFC 5737 TEST-NET). Set live NAS IP in overlay or gitignored values (often 192.168.1.x, x≥100).
+    server: 192.0.2.20
     path: /mnt/default_pool/Media
 ---
 apiVersion: v1
@@ -30,11 +31,12 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   nfs:
-    server: 192.168.1.200
+    # Placeholder (RFC 5737 TEST-NET). Set live NAS IP in overlay or gitignored values (often 192.168.1.x, x≥100).
+    server: 192.0.2.20
     path: /mnt/default_pool/BTDownloads
 ---
 # SQLite-backed app data: local disk on dalaran only (not NFS). Paths match rsync import:
-#   /home/harmless/media-config-import/plex
+#   /home/serendipper/media-config-import/plex
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -47,7 +49,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   hostPath:
-    path: /home/harmless/media-config-import/plex
+    path: /home/serendipper/media-config-import/plex
     type: Directory
 ---
 apiVersion: v1
