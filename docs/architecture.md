@@ -1,5 +1,11 @@
 # System Architecture
 
+## Who is what (cluster vs operator vs appliances)
+
+- **Cluster nodes** — K3s server and workers; join tokens, `kubectl`, workloads. Documented per-node under `nodes/`; SSH via `scripts/ssh-node.sh` and **`config/nodes`** for automation.
+- **Operator / maintenance hosts** — Any machine used to run `kubectl`, edit manifests, fix Pi-hole, or carry one-off LAN tasks. May be listed in **`config/nodes`** when the repo expects SSH there (e.g. a named maintenance host). They are **part of the workflow**, not the *definition* of the project; the project remains cluster-centric.
+- **Appliances** — e.g. **TrueNAS** (NFS/SMB, apps on the NAS). Consumed by the cluster as **storage and services**; **not** targets for routine **agent** SSH (policy in **`docs/agents.md`**). Humans may use the TrueNAS UI or SSH from their own sessions when appropriate.
+
 ## Topology & configuration sources
 
 - **Control plane:** hostname `dalaran` (see `config/defaults.env` / `K3S_CP_HOST`).

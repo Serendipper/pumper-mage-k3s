@@ -4,7 +4,11 @@ Procedures and conventions for agents working in this repository. **System layou
 
 ## What this is
 
-A K3s cluster on repurposed hardware (laptops, desktops, SBCs) with config-driven automation and skill-based procedures.
+A K3s cluster on repurposed hardware (laptops, desktops, SBCs) with config-driven automation and skill-based procedures. The **subject of this repository** is the **cluster and its LAN integrations** (ingress, storage, monitoring, DNS names), not any single personal workstation.
+
+**Operators** (people maintaining the homelab) use whatever machine they have — a maintenance laptop, a desktop with `kubectl`, a browser for UIs — for DNS checks, Pi-hole, `kubectl`/`helm`, optional SSH to hosts **they** administer, and TrueNAS UI or **human** SSH to the NAS when needed. That is normal and expected.
+
+**Agents** (Cursor automation following this repo) are different: they use **`ssh-node.sh`** only for **cluster nodes and hosts listed in `config/nodes` for that purpose**, and **do not** automate SSH to TrueNAS (see **TrueNAS — never SSH** below). Do not conflate “someone on the LAN fixed DNS / used SSH to the NAS” with “the agent should do the same.”
 
 ## Agent role (implementation vs. narration)
 
@@ -56,6 +60,12 @@ nmcli connection down "$WF" && nmcli connection up "$WF"
 
 ## SSH access
 
+### TrueNAS — never SSH
+
+**Never** open an SSH session to TrueNAS from agent automation — not **`ssh-node.sh`**, not **`ssh`**, not **`sshpass`**. TrueNAS is a storage appliance, not a cluster node. Do not put **`truenas`** in **`config/nodes`**. LAN address / DNS: Pi-hole and **`docs/state.md`**.
+
+### Cluster nodes and operator hosts
+
 - From agent context: **`./scripts/ssh-node.sh <hostname> '<command>'`** (run from repo root). The script sources **`config/defaults.env`** then **`config/project.env`**, so key path and **`K3S_SSH_USER`** match this machine — including the override in gitignored **`project.env`**.
 - **`config/defaults.env`** uses **`serendipper`** only as a **placeholder** for fresh clones. Do **not** assume that username when hand-writing `ssh user@IP`; use **`ssh-node.sh`** or set **`K3S_SSH_USER`** explicitly.
 
@@ -100,7 +110,7 @@ Commands the agent runs on **this** workstation may still fail with *“a termin
 |------|------|
 | `config/defaults.env` | Non-secret defaults (incl. **`K3S_CP_API_HOST`** → `dalaran.lan` for local kubeconfig `server:` URL) |
 | `config/project.env` | Secrets / overrides (gitignored) |
-| `config/nodes` | Hostname ↔ IP (gitignored) |
+| `config/nodes` | Hostname ↔ IP for **cluster nodes and operator hosts you SSH to** (gitignored). **Exclude** TrueNAS and other appliances you do not automate over SSH. |
 | `config/helm-values/` | Live Helm values (gitignored) |
 
 ## Node / IP discovery
@@ -141,6 +151,7 @@ When charts, paths, or procedures move, also update `charts/README.md`, `config/
 
 ## Agent guardrails
 
+- **Do not SSH to TrueNAS** as part of routine automation; it is not in **`config/nodes`** for that purpose (see **SSH access** above).
 - Do not run destructive git commands (filter-repo, force-push to shared branches, etc.) unless the user explicitly requests them.
 - Respect migrated workload state; do not reset app data or swap volumes to “fix” networking without explicit approval (see `docs/state.md`).
 - **Remote node commands:** the agent cannot use interactive **SSH** or **sudo** passwords. Use **`sshpass`** + **`sudo -S`** per **§ SSH access** — do not repeatedly rediscover this by failing `ssh`/`sudo` from the agent.
