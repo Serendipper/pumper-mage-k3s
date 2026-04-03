@@ -139,6 +139,12 @@ Pi workers: `scripts/runbook-worker-pi.md`.
 - Keep `config/nodes` aligned with the cluster.
 - Canonical docs under `docs/`: `agents.md`, `architecture.md`, `skills.md`, `state.md`.
 
+### Cluster changes: commit sources and document applies
+
+- **Nothing cluster-only** — First-party Kubernetes objects (Grafana dashboard ConfigMaps, raw `kubectl apply` manifests, Kustomize additions, etc.) must live in **this repository** as the source of truth (e.g. under **`deploy/kustomize/`**, **`charts/`**, or patterns described in **`config/README.md`**). Do not deliver or leave behind behavior that exists **only** as live objects on K3s with no committed definition.
+- **Document every push to the cluster** — When you **`kubectl apply`**, **`helm upgrade`**, or otherwise change what runs on K3s, update **committed** documentation so the next run is reproducible: at minimum note **what** changed and **where** the manifest or values live (`deploy/kustomize/README.md`, **`config/README.md`**, chart READMEs, **`monitoring/README.md`**, or **`docs/state.md`** when it affects current workloads or operator policy). Gitignored **`config/helm-values/`** is still the tracked *pattern* via templates under **`monitoring/`**, **`ingress/`**, etc.; describe upgrades there when the template or procedure shifts.
+- **Placeholders vs live paths** — Committed YAML and **`docs/state.md`** use **generic** paths and usernames (e.g. **`serendipper`**, **`/home/serendipper/...`**) so the repo stays safe to publish. **Do not** copy real home directories or usernames out of **`kubectl`** output into committed files to “match production.” The live node may use a different UNIX user; fixing that is an **on-node / overlay / private** edit, not a reason to commit real paths.
+
 **Per-node changelog structure**
 
 1. Node details (hardware, serial, MACs, IP, role)

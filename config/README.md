@@ -25,6 +25,8 @@ Cluster-related values live under **config/**; scripts and skills source these s
 
 **Not Helm values:** `deploy/kustomize/base/monitoring/grafana-datasource-loki.yaml` is an optional raw **ConfigMap** fallback; prefer provisioning Loki via `additionalDataSources` in **`config/helm-values/prometheus-stack.yaml`**. It ships in the Kustomize base (`kubectl apply -k deploy/kustomize/base`); remove it from **`deploy/kustomize/base/kustomization.yaml`** if you only use Helm provisioning.
 
+**Homelab Grafana dashboards:** `deploy/kustomize/base/monitoring/node-cpu-temps.json` is the **Node CPU Temps** dashboard (sidecar label via `configMapGenerator` in **`deploy/kustomize/base/kustomization.yaml`**). Edit the JSON and re-apply the Kustomize base so Grafana picks up changes.
+
 Committed Helm **templates** and **example values** live in **monitoring/**, **ingress/**, and **charts/homelab-showcase/** (including **charts/homelab-showcase/charts/pihole/**).
 
 ## First-party manifests (Kustomize, not Helm)

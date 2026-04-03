@@ -18,7 +18,7 @@ Or:
 |-------------------------------------|----------|
 | `cert-manager/` | LE **staging** ClusterIssuer + OpenClaw **staging** Certificate (install **cert-manager** controller first). **Prod** issuer + cert YAML files stay in-repo for copy/paste when you have a **public** `dnsName`; they are **not** in the default base (`.lan` will not work with Let’s Encrypt). |
 | `storage/` | `media` namespace, NFS PV/PVC, Plex, media Ingress, TrueNAS *arr external Services/Endpoints, OpenClaw gateway |
-| `monitoring/` | Optional Grafana Loki datasource ConfigMap |
+| `monitoring/` | Grafana Loki datasource ConfigMap (optional fallback); **Node CPU Temps** dashboard (`node-cpu-temps.json` + `configMapGenerator`) |
 
 **Not included:** Helm releases (ingress-nginx, kube-prometheus-stack, Loki, Pi-hole, …) — use **`helm upgrade -f config/helm-values/...`**. **Not included:** `ingress/demo-ingress.yaml` (smoke test only).
 

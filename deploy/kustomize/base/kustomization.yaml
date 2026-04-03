@@ -21,3 +21,14 @@ resources:
   - storage/truenas-arr-external-services.yaml
   - storage/openclaw-external-gateway.yaml
   - monitoring/grafana-datasource-loki.yaml
+
+# Grafana sidecar picks up ConfigMaps labeled grafana_dashboard=1 (kube-prometheus-stack).
+configMapGenerator:
+  - name: homelab-node-cpu-temps
+    namespace: monitoring
+    files:
+      - node-cpu-temps.json=monitoring/node-cpu-temps.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true

@@ -1,6 +1,6 @@
 # Current state
 
-Last updated: 2026-03-28
+Last updated: 2026-04-03
 
 ## Media migration (TrueNAS → K3s)
 
@@ -15,8 +15,9 @@ Last updated: 2026-03-28
 
 **Manifests & paths**
 
-- Workloads: `deploy/kustomize/base/storage/media-apps.yaml` (apply via **`kubectl apply -k deploy/kustomize/base`**).
-- **Config PVs:** `hostPath` → `/home/serendipper/media-config-import/plex` on **dalaran** (imported via rsync from TrueNAS; private local runbook under `scripts/private-truenas/TRUENAS_PUSH_CONFIG_TO_DALARAN.md`). Legacy Sonarr/Radarr dirs are optional leftovers.
+- Workloads: `deploy/kustomize/base/storage/media-apps.yaml` (apply via **`kubectl apply -k deploy/kustomize/base`** or **`./scripts/apply-cluster-manifests.sh`**).
+- NFS export / mount patterns (not the live PV YAML): **`storage/README.md`**.
+- **Config PVs:** `hostPath` → `/home/serendipper/media-config-import/plex` on **dalaran** in **committed** Kustomize (**placeholder** user; live `hostPath` on the node may differ — **`docs/agents.md`**, *Placeholders vs live paths*). Imported via rsync from TrueNAS; private runbook `scripts/private-truenas/TRUENAS_PUSH_CONFIG_TO_DALARAN.md`. Legacy Sonarr/Radarr dirs are optional leftovers.
 - **NFS:** `pv-media-library` / `media-library` → Plex `/data` (read-mostly). `pv-media-downloads` / `media-downloads` still defined in the namespace (leftover from when *arr ran here); Plex does not mount it.
 
 **Access (as of last check)**
@@ -33,6 +34,13 @@ Last updated: 2026-03-28
 - **Worker LAN (2026-03):** Laptops use **Ethernet as primary**; **Wi‑Fi remains configured** as backup. **`kubectl get nodes -o wide`** INTERNAL-IP should track the primary interface; if a node falls back to Wi‑Fi, reconcile **`config/nodes`** and per-node changelogs with the live address.
 - **Control plane LAN IP changes:** **`docs/control-plane-ip-change.md`** (Pi-hole static `address=` lines for **`dalaran`**, **`dalaran.lan`**, and ingress names; **`config/nodes`**, kubeconfig).
 - **“Sync”** does not mean rsync; only run rsync when explicitly requested (and without `--delete` to a named maintenance host per project rules).
+- **GitOps:** First-party cluster YAML (Kustomize under **`deploy/kustomize/base/`**, including optional Grafana dashboard JSON in **`deploy/kustomize/base/monitoring/`**) is the source of truth in git. **Any** live change via **`kubectl`** / **`helm`** must be reflected in committed docs and/or manifests (**`docs/agents.md`** — *Cluster changes: commit sources and document applies*). Live Helm values stay in gitignored **`config/helm-values/`** but follow committed templates under **`monitoring/`**, **`ingress/`**, **`charts/`**, etc. (**`config/README.md`**).
+- **Monitoring:** Prometheus + Grafana (**kube-prometheus-stack**), typically Loki + Promtail when installed; Grafana at **`grafana.lan`**. Procedures and paths: **`monitoring/README.md`**, **`skills/monitoring-stack-setup/SKILL.md`**. Dashboards and datasources may be provisioned by Helm **or** checked-in under **`deploy/kustomize/base/monitoring/`** (Grafana sidecar label **`grafana_dashboard: "1"`**).
+- **TLS / cert-manager:** The default Kustomize base may include **Let’s Encrypt staging** issuers / OpenClaw **staging** certificates (**`deploy/kustomize/base/cert-manager/`**); production TLS and LAN trust are still an open design item (see **Open items**).
+
+## Cluster snapshot (verify with live API; not a substitute for `kubectl` / `helm`)
+
+Checked **2026-04-03** against the cluster: **Helm** — `ingress-nginx`, `pihole` (default), `prometheus-stack`, `loki`, `promtail`. **Ingress** — `grafana.lan`, `dalaran.plex` / sonarr / radarr, `openclaw.dalaran.lan`, **`demo.lan`** (demo app). **Pi-hole** pod schedules on **`modera`**. **`ansirem`** was **NotReady** (unreachable). **Monitoring** components are **not** all on **dalaran** (e.g. Alertmanager, operator, kube-state-metrics, Loki MinIO on other nodes — reconcile with **`kubectl get pods -n monitoring -o wide`**). Update this section when topology changes.
 
 ## Recent changes / lessons
 
@@ -44,9 +52,11 @@ Last updated: 2026-03-28
 
 - Final TLS strategy for trusted HTTPS on LAN (install CA / internal CA vs self-signed acceptance vs HTTP on trusted LAN).
 - Optional: short runbook for media URLs, ingress names, and rollback.
+- Periodically reconcile this file with **`helm list -A`**, **`kubectl get ns`**, and **`nodes/roadmap.md`** so “current state” stays accurate (chart upgrades, new workers, retired workloads).
 
 ## Guardrails (current policy)
 
 - Preserve migrated app config and data unless the user explicitly asks for a reset or blank install.
 - Live Helm values live in `config/helm-values/`; committed YAML in chart dirs are templates only.
 - Avoid destructive git operations (e.g. history rewrite) unless explicitly requested.
+- Do not leave operational behavior **only** on the cluster: commit first-party manifests and document applies (**`docs/agents.md`**).

@@ -2,7 +2,7 @@
 
 Canonical runbook content now lives in:
 
-- `docs/agents.md`
+- `docs/agents.md` (GitOps: commit manifests locally; document applies; use path **placeholders** in git — do not paste real home paths from `kubectl`)
 
 **TrueNAS:** never SSH there (`ssh-node.sh`, `ssh`, `sshpass`, etc.). Not a cluster node; see `docs/agents.md` (SSH access) and `.cursor/rules/truenas-no-ssh.mdc`.
 
