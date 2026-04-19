@@ -106,7 +106,7 @@ Dispatch based on detection in step 2:
 
 Do NOT suggest hybrid mode. Only use it if the user explicitly says the laptop is their daily driver or asks about part-time nodes. Dedicated hardware is always preferred.
 
-**Laptops with WiFi configured:** Do not proceed past hardware hardening until **`skills/hardware/laptop/SKILL.md` §2a** (association, IPv4 on WiFi, `ping -I <wifi-iface> $K3S_CP_IP`) has been run and passes.
+**Laptops (WiFi):** Do not proceed past hardware hardening until **`skills/hardware/laptop/SKILL.md` §2a** is satisfied: **current SSID must match `K3S_WIFI_SSID`** from sourced config (unless you are explicitly in the temporary-SSID path in laptop §2 and will switch back), plus IPv4 on the WiFi interface and **`ping -I <wifi-iface> <K3S_CP_IP>`**. “Already online” or “SSH works” is **not** a substitute for that check — see laptop §2 opening paragraphs.
 
 ### 9. Reboot
 
@@ -169,11 +169,20 @@ curl -sfL "$K3S_INSTALL_URL" | K3S_URL="$K3S_URL" K3S_TOKEN=<token> sh -
 
 Non-interactive installs must wrap the installer in `sudo` with a password on stdin once (see recent `vargoth` bring-up): e.g. `echo "$K3S_NODE_PASSWORD" | sudo -S env K3S_URL=... K3S_TOKEN=... sh -c 'curl -sfL ... | sh -'`.
 
-### 12. Label Node
+### 12. Deploy project SSH key to the new node
 
-From the control plane (`K3S_CP_HOST` from config), e.g. `./scripts/ssh-node.sh $K3S_CP_HOST 'sudo k3s kubectl label node <hostname> node-role.kubernetes.io/worker=worker'`.
+**`./scripts/ssh-node.sh`** uses the project key (`K3S_SSH_KEY`); it does not use password auth. After bootstrap you have only used **`sshpass`** to this host — deploy the public key **before** any step that calls **`./scripts/ssh-node.sh <hostname>`** toward **this** worker.
 
-### 13. Verify
+1. Ensure **`config/nodes`** contains one line: **`<hostname> <IP>`** (same **INTERNAL-IP** you will reconcile with `kubectl`; required for `ssh-node.sh` to resolve the host by name).
+2. Install the key — see **`skills/agent-environment-setup/SKILL.md`** → **Deploy Public Key to a Node** (append to `authorized_keys` via `sshpass`, or **`ssh-copy-id`** after sourcing config; example: `KEY="${K3S_SSH_KEY/#\~/$HOME}"` then `ssh-copy-id -i "$KEY.pub" "$K3S_SSH_USER@<IP>"` with **`sshpass`** if needed).
+
+Skip only if this node already had the project key (e.g. reimage of an existing listed host).
+
+### 13. Label Node
+
+From the control plane (`K3S_CP_HOST` from config), e.g. `./scripts/ssh-node.sh $K3S_CP_HOST 'sudo k3s kubectl label node <hostname> node-role.kubernetes.io/worker=worker'`. If **`sudo`** on the CP requires a password in non-interactive SSH, use **`echo "$K3S_NODE_PASSWORD" | sudo -S`** before **`k3s kubectl`** (see **`docs/agents.md`**).
+
+### 14. Verify
 
 ```bash
 source config/defaults.env
@@ -191,26 +200,28 @@ Reconcile **`config/nodes`** with the **INTERNAL-IP** column for every node (see
 
 **Laptop + WiFi:** If the node is often WiFi-only, confirm `./scripts/ssh-node.sh` reaches the same IP `kubectl` reports (or the IP you intentionally keep in `config/nodes` after reconciliation).
 
-### 14. Documentation
+### 15. Documentation
 
 Create `nodes/<hostname>-<model>.md` following the changelog template in `docs/agents.md`. Include:
 1. Node Details table
 2. Hardware Snapshot
 3. Change History (all phases performed)
-4. Remaining Roadmap (static DHCP reservation)
+4. Remaining Roadmap (DHCP: automatic is normal; reconcile `config/nodes` when IP changes; optional fixed lease on the DHCP server if you want)
 5. Known Limitations (if any)
 
 Update the inventory table in `nodes/roadmap.md`.
 
-Add the new node to **config/nodes** (one line: `hostname IP`) so `scripts/ssh-node.sh` and agent-environment-setup batch deploy can reach it.
+Ensure the new node stays in **config/nodes** (one line: `hostname IP`) so `scripts/ssh-node.sh` and agent-environment-setup batch deploy can reach it (it should already be there from step **12**).
 
 ## Troubleshooting
 
 | Problem | Likely Cause | Fix |
 |---------|-------------|-----|
+| `ssh-node.sh` to the new worker hangs or never returns | Project key not in `authorized_keys` on that host yet | Run step **12** (`skills/agent-environment-setup` — deploy public key) before **`ssh-node.sh`** |
 | SSH times out | Wrong IP, node asleep, firewall | Check IP, verify power, scan network |
 | No IPv4 on ethernet | DHCP issue | Use IPv6 via control plane (K3S_CP_HOST) as jump host |
 | Package not found | Missing apt repos | Add `contrib non-free non-free-firmware` |
 | WiFi doesn't come up after reboot | Driver issue | See `skills/hardware/laptop/wifi-drivers.md` |
+| Node on wrong SSID / “WiFi works” but not `K3S_WIFI_SSID` | Skipped laptop §2 / §2a | Check `iw dev <iface> link` or `nmcli`; apply laptop §2 and verify §2a before join |
 | Node shows NotReady | K3s agent not running or network issue | `systemctl status k3s-agent`, check flannel |
 | Port 22 filtered after K3s install | iptables rules conflict | Flush rules locally: `iptables -F` |

@@ -1,6 +1,6 @@
 # Current state
 
-Last updated: 2026-04-03
+Last updated: 2026-04-04
 
 ## Media migration (TrueNAS → K3s)
 
@@ -40,10 +40,11 @@ Last updated: 2026-04-03
 
 ## Cluster snapshot (verify with live API; not a substitute for `kubectl` / `helm`)
 
-Checked **2026-04-03** against the cluster: **Helm** — `ingress-nginx`, `pihole` (default), `prometheus-stack`, `loki`, `promtail`. **Ingress** — `grafana.lan`, `dalaran.plex` / sonarr / radarr, `openclaw.dalaran.lan`, **`demo.lan`** (demo app). **Pi-hole** pod schedules on **`modera`**. **`ansirem`** was **NotReady** (unreachable). **Monitoring** components are **not** all on **dalaran** (e.g. Alertmanager, operator, kube-state-metrics, Loki MinIO on other nodes — reconcile with **`kubectl get pods -n monitoring -o wide`**). Update this section when topology changes.
+Checked **2026-04-04** (historical; **re-verify** **`kubectl`** for current rows): **Helm** — `ingress-nginx`, `pihole` (default), `prometheus-stack`, `loki`, `promtail`. **Ingress** — `grafana.lan`, `dalaran.plex` / sonarr / radarr, `openclaw.dalaran.lan`, **`demo.lan`** (demo app). **Pi-hole** pod schedules on **`modera`**. **`ansirem`** was **NotReady** (unreachable). **`krasus`** (Surface Pro 4): **Ready**; **`kubectl`** INTERNAL-IP **192.168.1.233** (USB **`enx`**); WiFi **`K3S_WIFI_SSID`** (**taconet3**) per **`nodes/krasus-surface-pro-4.md`**. **Monitoring** components are **not** all on **dalaran** (e.g. Alertmanager, operator, kube-state-metrics, Loki MinIO on other nodes — reconcile with **`kubectl get pods -n monitoring -o wide`**). Update this section when topology changes.
 
 ## Recent changes / lessons
 
+- **`krasus`:** Earlier **`wpa_cli`** mis-try **2026-04-04**; **USB Ethernet** recovery; WiFi aligned to **`K3S_WIFI_SSID`** **2026-04-05** (**`skills/hardware/laptop/SKILL.md`** §2 / §2a). **`nodes/krasus-surface-pro-4.md`**.
 - A temporary Plex `emptyDir` config was used during troubleshooting and **reverted** — it wipes state and is not a long-term fix.
 - Plex `/config` must remain on the persistent PVC for migrated libraries and claims.
 - HTTPS / hostname / cert trust are orthogonal to whether migrated `Preferences.xml` and DB paths are intact.

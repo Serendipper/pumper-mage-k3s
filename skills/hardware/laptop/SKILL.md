@@ -31,6 +31,8 @@ modprobe -r <driver> && modprobe <driver>
 
 ## 2. WiFi Configuration
 
+**Do not treat “WiFi already works” as done.** The intended SSID is **`K3S_WIFI_SSID`** after sourcing **config/defaults.env** and **config/project.env** (PSK: **`K3S_WIFI_PSK`**). An install-time or random association is not sufficient unless you **verify** it matches that SSID, or you are **explicitly** using the **SSID strategy** below (temporary other SSID, then switch back to `K3S_WIFI_SSID`). Agents must not skip configuration or verification because the link is up.
+
 Source config so SSID and PSK are set (required for autonomous runs):
 
 ```bash
@@ -67,6 +69,20 @@ Verify IP:
 ```bash
 ip addr show <iface>
 ```
+
+If the node uses **NetworkManager** (e.g. after pulling in dependencies) instead of **ifupdown**, configure the connection for **`K3S_WIFI_SSID`** with **`nmcli`** or align **`/etc/NetworkManager`** with the same SSID — do not leave a working but wrong SSID unexamined.
+
+### §2a — Mandatory verification (before cluster join)
+
+Run these on the node after sourcing **`K3S_WIFI_SSID`** on the operator/agent side (same values as §2). **Do not skip** because SSH already works.
+
+1. **SSID matches project config** — current association must be **`K3S_WIFI_SSID`**, unless you are mid-**SSID strategy** (temporary SSID) and will switch back before calling the node “finished”:
+   - **`iw dev <iface> link`** (look for `SSID:`), or **`nmcli -t -f NAME,DEVICE connection show --active`**, or **`iwgetid -r`**.
+   - If the SSID differs from **`K3S_WIFI_SSID`**, apply §2 (or NM equivalent) and reconnect — do not proceed on “any working WiFi.”
+2. **IPv4 on the WiFi interface:** `ip -4 addr show <iface>` shows an address.
+3. **Reach control plane on that interface:** `ping -I <iface> -c 2 <K3S_CP_IP>` using the same **`K3S_CP_IP`** as in **config/project.env** (the node may not define this variable — pass the numeric IP). WiFi-only nodes: this must succeed on **`wlp*`** (or the active WiFi iface), not only on loopback or another iface.
+
+Document the SSID used in the node changelog (`nodes/<hostname>-<model>.md`).
 
 ## 3. Lid Close — Ignore
 
@@ -200,7 +216,8 @@ systemctl is-enabled sleep.target  # should be "masked"
 # Display off service
 systemctl is-enabled display-off
 
-# WiFi connected
+# WiFi: SSID matches K3S_WIFI_SSID (see §2a) and has IPv4
+iw dev <iface> link | grep -i ssid
 ip addr show <iface> | grep inet
 
 # Battery (if applicable)

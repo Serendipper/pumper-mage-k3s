@@ -38,6 +38,8 @@ customDnsmasqLines:
   - "address=/dalaran.plex/192.168.1.6"
   - "address=/dalaran.radarr/192.168.1.6"
   - "address=/dalaran.sonarr/192.168.1.6"
+  # Pi-hole UI: same IP as nodeName (hostNetwork binds 80/53 on that node).
+  - "address=/pihole.lan/192.168.1.5"
   - "address=/grafana.lan/192.168.1.6"
   - "address=/openclaw.dalaran.lan/192.168.1.6"
   # NAS / services often use x≥100 on /24 — placeholder TEST-NET (replace in overlay with real NAS IP).

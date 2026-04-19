@@ -76,9 +76,11 @@ This requires physical access to the BIOS setup. Common keys:
 | ASUS | Del/F2 | F8 |
 | Intel NUC | F2 | F10 |
 
-## 4. Static DHCP Reservation
+## 4. Static DHCP Reservation (optional)
 
-Since desktops stay in one place on wired ethernet, their IPs rarely change. But a static DHCP reservation on the router is still recommended to prevent surprises.
+**Scope:** **Desktop / wired workers only.** This is **not** a cluster-wide requirement, **not** for laptops (they usually use automatic DHCP like other workers), and **must not** be copied into generic “every node” checklists as mandatory.
+
+Since desktops stay in one place on wired ethernet, their IPs rarely change. A **fixed lease / reservation** on whatever runs **DHCP** on your LAN (often the **router** — not Pi-hole unless it is your DHCP server) is **optional**: it can reduce surprises if the lease pool shifts. If you skip it, use **automatic DHCP** and reconcile **`config/nodes`** with **`kubectl get nodes -o wide`** when the address changes — same as most workers.
 
 Record the MAC address:
 ```bash

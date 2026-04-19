@@ -7,11 +7,11 @@ Procedural skills live under `skills/*/SKILL.md`. **Cluster layout** → `docs/a
 - `skills/project-setup/SKILL.md` — project secrets and local config.
 - `skills/agent-environment-setup/SKILL.md` — local tooling and kube access.
 - `skills/control-plane-setup/SKILL.md` — K3s server.
-- `skills/worker-node-setup/SKILL.md` — workers; dispatches hardware skills.
+- `skills/worker-node-setup/SKILL.md` — workers; dispatches hardware skills. **Before `ssh-node.sh` to a new host:** deploy the project key (`skills/agent-environment-setup` — Deploy Public Key); see **`docs/agents.md`** (SSH access). **WiFi laptops:** verify **`K3S_WIFI_SSID`** per **`skills/hardware/laptop/SKILL.md`** §2 / §2a (not “any working WiFi”).
 
 ## Hardware
 
-- `skills/hardware/laptop/SKILL.md` — dedicated laptop node.
+- `skills/hardware/laptop/SKILL.md` — dedicated laptop node; **§2a** — mandatory SSID + ping checks before join.
 - `skills/hardware/laptop-hybrid/SKILL.md` — part-time daily-driver node.
 - `skills/hardware/desktop/SKILL.md` — desktop nodes.
 - `skills/hardware/sbc/SKILL.md` — SBC / Pi.

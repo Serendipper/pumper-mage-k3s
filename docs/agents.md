@@ -37,6 +37,7 @@ A K3s cluster on repurposed hardware (laptops, desktops, SBCs) with config-drive
 ### Network
 
 - WiFi SSID/PSK only in config files.
+- **Worker laptops (WiFi):** The intended SSID is **`K3S_WIFI_SSID`** (from **`config/defaults.env`** + **`config/project.env`**). Agents must follow **`skills/hardware/laptop/SKILL.md`** §2 and **§2a** — verify the live association matches that SSID (or the documented temporary-SSID path) before cluster join; **do not** skip because the link is already up or SSH works.
 - Do not bake ad hoc LAN IPs into committed scripts; use `config/nodes` and env-driven values (see `docs/architecture.md`).
 
 ### LAN DNS / Pi-hole (when “name doesn’t resolve” on an operator machine)
@@ -67,6 +68,7 @@ nmcli connection down "$WF" && nmcli connection up "$WF"
 ### Cluster nodes and operator hosts
 
 - From agent context: **`./scripts/ssh-node.sh <hostname> '<command>'`** (run from repo root). The script sources **`config/defaults.env`** then **`config/project.env`**, so key path and **`K3S_SSH_USER`** match this machine — including the override in gitignored **`project.env`**.
+- **`ssh-node.sh` is key-based.** On a **new** node you have only reached with **`sshpass`** (password), install the project public key into **`~/.ssh/authorized_keys`** on **that host** before relying on **`ssh-node.sh`**. Otherwise non-interactive SSH may hang waiting for a password. Procedure: **`skills/agent-environment-setup/SKILL.md`** (section **Deploy Public Key to a Node**), or **`ssh-copy-id -i "${K3S_SSH_KEY}.pub"`** after sourcing **`config/project.env`**. **`config/nodes`** must list **`hostname IP`** so the script can resolve the host.
 - **`config/defaults.env`** uses **`serendipper`** only as a **placeholder** for fresh clones. Do **not** assume that username when hand-writing `ssh user@IP`; use **`ssh-node.sh`** or set **`K3S_SSH_USER`** explicitly.
 
 ### Non-interactive remote access (read this before any `ssh` to a node)
