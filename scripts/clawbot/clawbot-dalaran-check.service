@@ -1,0 +1,10 @@
+[Unit]
+Description=Clawbot dalaran external health checker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/clawbot/check-dalaran.sh
+User=root
+Group=root

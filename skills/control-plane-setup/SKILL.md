@@ -11,6 +11,14 @@ description: Deploy or rebuild the K3s control plane server node with external P
 - External PostgreSQL accessible; URL in **config/project.env** (`K3S_DATASTORE_URL`) or **config/defaults.env**.
 - Node is on wired ethernet with a known IP.
 
+### Wired LAN IP before K3s
+
+This skill assumes you can reach the host over SSH on the address you will keep for the control plane.
+
+- **DHCP + optional reservation:** Often enough — see **`skills/hardware/desktop/SKILL.md`** §4. Reconcile **`config/nodes`** if the lease changes.
+- **Static IP in Debian (ifupdown):** If you assign the address in **`/etc/network/interfaces`**, follow **`skills/hardware/desktop/SKILL.md`** §**1a** — correct **`iface <real-interface> inet static`**, **`address` / `netmask` / `gateway` / `dns-nameservers`**, and **validate with `ip addr` + routing + ping before relying on a reboot.** Do not copy **`scripts/set-node-static-ip.sh`** (netplan + WiFi) onto a wired headless Debian box.
+- **HA second control plane:** Use the **same** datastore URL and **matching K3s version** as the first server; set **`flannel-iface`** to the wired interface if multiple NICs exist. Network mistakes here are the same class as above — wrong `iface` name or rebooting before validation strands the join.
+
 ## Procedure
 
 ### 1. OS Prep
@@ -132,4 +140,4 @@ If the control plane needs rebuilding:
 ## Known Decisions
 
 - No mDNS/Avahi — conflicts with CoreDNS. Use static DHCP + hosts file.
-- Single control plane node (not HA) — acceptable for homelab.
+- **HA control plane** (multiple `control-plane` nodes) is supported when using the external PostgreSQL datastore; avoid embedded-etcd assumptions. LAN addressing for additional servers: **`skills/hardware/desktop/SKILL.md`** §**1a** and router reservations.

@@ -1,6 +1,6 @@
 # K3s Homelab — Agent runbook (canonical)
 
-Procedures and conventions for agents working in this repository. **System layout and design** live in [`docs/architecture.md`](architecture.md). **What is deployed and current policy** live in [`docs/state.md`](state.md).
+Procedures and conventions for agents working in this repository. **System layout and design** live in [`docs/architecture.md`](architecture.md). **What is deployed and current policy** live in **[`docs/state.example.md`](state.example.md)** (committed template) and, on a maintainer machine, **[`docs/state.md`](state.md)** — copy the example to `state.md` and edit; **`docs/state.md` is gitignored** so LAN-specific lessons and session notes stay local.
 
 ## What this is
 
@@ -36,6 +36,7 @@ A K3s cluster on repurposed hardware (laptops, desktops, SBCs) with config-drive
 
 ### Network
 
+- **Debian wired static IP (control plane or fixed LAN):** When editing **`/etc/network/interfaces`**, follow **`skills/hardware/desktop/SKILL.md`** §**1a** — correct interface name, **`inet static`** with **`address` / `netmask` / `gateway` / `dns-nameservers`**, validate with **`ip` / `ping`** before treating a reboot as safe. Do not use **`scripts/set-node-static-ip.sh`** on wired headless nodes (that path is netplan + WiFi).
 - WiFi SSID/PSK only in config files.
 - **Worker laptops (WiFi):** The intended SSID is **`K3S_WIFI_SSID`** (from **`config/defaults.env`** + **`config/project.env`**). Agents must follow **`skills/hardware/laptop/SKILL.md`** §2 and **§2a** — verify the live association matches that SSID (or the documented temporary-SSID path) before cluster join; **do not** skip because the link is already up or SSH works.
 - Do not bake ad hoc LAN IPs into committed scripts; use `config/nodes` and env-driven values (see `docs/architecture.md`).
@@ -63,7 +64,7 @@ nmcli connection down "$WF" && nmcli connection up "$WF"
 
 ### TrueNAS — never SSH
 
-**Never** open an SSH session to TrueNAS from agent automation — not **`ssh-node.sh`**, not **`ssh`**, not **`sshpass`**. TrueNAS is a storage appliance, not a cluster node. Do not put **`truenas`** in **`config/nodes`**. LAN address / DNS: Pi-hole and **`docs/state.md`**.
+**Never** open an SSH session to TrueNAS from agent automation — not **`ssh-node.sh`**, not **`ssh`**, not **`sshpass`**. TrueNAS is a storage appliance, not a cluster node. Do not put **`truenas`** in **`config/nodes`**. LAN address / DNS: Pi-hole and local **`docs/state.md`** (or **`docs/state.example.md`** for the public template).
 
 ### Cluster nodes and operator hosts
 
@@ -139,13 +140,13 @@ Pi workers: `scripts/runbook-worker-pi.md`.
 - Update `nodes/<hostname>-<model>.md` after deployment changes.
 - Update inventory in `nodes/roadmap.md`.
 - Keep `config/nodes` aligned with the cluster.
-- Canonical docs under `docs/`: `agents.md`, `architecture.md`, `skills.md`, `state.md`.
+- Canonical docs under `docs/`: `agents.md`, `architecture.md`, `skills.md`, `state.example.md` (and optional local `state.md`, gitignored).
 
 ### Cluster changes: commit sources and document applies
 
 - **Nothing cluster-only** — First-party Kubernetes objects (Grafana dashboard ConfigMaps, raw `kubectl apply` manifests, Kustomize additions, etc.) must live in **this repository** as the source of truth (e.g. under **`deploy/kustomize/`**, **`charts/`**, or patterns described in **`config/README.md`**). Do not deliver or leave behind behavior that exists **only** as live objects on K3s with no committed definition.
-- **Document every push to the cluster** — When you **`kubectl apply`**, **`helm upgrade`**, or otherwise change what runs on K3s, update **committed** documentation so the next run is reproducible: at minimum note **what** changed and **where** the manifest or values live (`deploy/kustomize/README.md`, **`config/README.md`**, chart READMEs, **`monitoring/README.md`**, or **`docs/state.md`** when it affects current workloads or operator policy). Gitignored **`config/helm-values/`** is still the tracked *pattern* via templates under **`monitoring/`**, **`ingress/`**, etc.; describe upgrades there when the template or procedure shifts.
-- **Placeholders vs live paths** — Committed YAML and **`docs/state.md`** use **generic** paths and usernames (e.g. **`serendipper`**, **`/home/serendipper/...`**) so the repo stays safe to publish. **Do not** copy real home directories or usernames out of **`kubectl`** output into committed files to “match production.” The live node may use a different UNIX user; fixing that is an **on-node / overlay / private** edit, not a reason to commit real paths.
+- **Document every push to the cluster** — When you **`kubectl apply`**, **`helm upgrade`**, or otherwise change what runs on K3s, update **committed** documentation so the next run is reproducible: at minimum note **what** changed and **where** the manifest or values live (`deploy/kustomize/README.md`, **`config/README.md`**, chart READMEs, **`monitoring/README.md`**, or local **`docs/state.md`** when it affects current workloads or operator policy). Gitignored **`config/helm-values/`** is still the tracked *pattern* via templates under **`monitoring/`**, **`ingress/`**, etc.; describe upgrades there when the template or procedure shifts.
+- **Placeholders vs live paths** — Committed YAML and **`docs/state.example.md`** use **generic** paths and usernames (e.g. **`serendipper`**, **`/home/serendipper/...`**) so the repo stays safe to publish. Keep site-specific truth in gitignored **`docs/state.md`**. **Do not** copy real home directories or usernames out of **`kubectl`** output into committed files to “match production.” The live node may use a different UNIX user; fixing that is an **on-node / overlay / private** edit, not a reason to commit real paths.
 
 **Per-node changelog structure**
 
@@ -161,5 +162,5 @@ When charts, paths, or procedures move, also update `charts/README.md`, `config/
 
 - **Do not SSH to TrueNAS** as part of routine automation; it is not in **`config/nodes`** for that purpose (see **SSH access** above).
 - Do not run destructive git commands (filter-repo, force-push to shared branches, etc.) unless the user explicitly requests them.
-- Respect migrated workload state; do not reset app data or swap volumes to “fix” networking without explicit approval (see `docs/state.md`).
+- Respect migrated workload state; do not reset app data or swap volumes to “fix” networking without explicit approval (see local `docs/state.md` or `docs/state.example.md`).
 - **Remote node commands:** the agent cannot use interactive **SSH** or **sudo** passwords. Use **`sshpass`** + **`sudo -S`** per **§ SSH access** — do not repeatedly rediscover this by failing `ssh`/`sudo` from the agent.

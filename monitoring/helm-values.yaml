@@ -29,6 +29,28 @@ grafana:
         httpHeaderName1: "X-Scope-OrgID"
         httpHeaderValue1: "1"
 
+  # Email for Grafana unified alerting (Grafana as subchart — credentials live in a Secret, not here).
+  # 1) kubectl -n monitoring create secret generic grafana-smtp --from-literal=user='SMTP_USER' --from-literal=password='SMTP_PASSWORD' --dry-run=client -o yaml | kubectl apply -f -
+  # 2) Set host / from / root_url below to match your SMTP provider and public URL, then helm upgrade.
+  # See: monitoring/README.md § SMTP
+  smtp:
+    existingSecret: grafana-smtp
+    userKey: user
+    passwordKey: password
+
+  grafana.ini:
+    server:
+      # Links in alert emails; match how you open Grafana (Ingress).
+      root_url: "http://grafana.lan/"
+    smtp:
+      enabled: true
+      # Examples: smtp.gmail.com:587 (app password), smtp.sendgrid.net:587, your ISP relay:25
+      host: "smtp.example.com:587"
+      from_address: "Grafana Alerts <alerts@example.com>"
+      from_name: "Grafana"
+      # start_tls_policy: MandatoryStartTLS
+      # For SMTPS on 465, some providers need: start_tls_policy: NoStartTLS
+
   ingress:
     enabled: true
     ingressClassName: nginx

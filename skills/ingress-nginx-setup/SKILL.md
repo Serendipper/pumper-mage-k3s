@@ -31,7 +31,7 @@ helm repo update
 
 ## 3. Install the controller
 
-**Recommended:** copy **`ingress/helm-values-hostnetwork.yaml`** to **`config/helm-values/ingress-nginx.yaml`**, set `controller.nodeSelector` to your **`K3S_CP_HOST`**, then install from the **live** file only (see **config/README.md** § *Helm: templates vs live values*).
+**Recommended:** copy **`ingress/helm-values-hostnetwork.yaml`** to **`config/helm-values/ingress-nginx.yaml`**, then install from the **live** file only (see **config/README.md** § *Helm: templates vs live values*). The template schedules the controller on **every** control-plane node (DaemonSet + affinity + tolerations). If pods stay `Pending`, confirm nodes have the label **`node-role.kubernetes.io/control-plane`** and taints; LAN HTTP entry may be HAProxy on **modera** — see **`ingress/README.md`** and **`./scripts/apply-haproxy-ingress-lb.sh`**.
 
 ```bash
 helm install ingress-nginx ingress-nginx/ingress-nginx \
@@ -98,8 +98,8 @@ Apply and test:
 ```bash
 kubectl apply -f demo-ingress.yaml
 # From a machine that can reach the control plane IP:
-curl -H "Host: demo.lan" http://<CONTROL_PLANE_IP>/
-# Or add to /etc/hosts: <CONTROL_PLANE_IP> demo.lan  then open http://demo.lan in a browser
+curl -H "Host: demo.lan" http://<MODERA_OR_HAPROXY_IP>/
+# Pi-hole: address=/demo.lan/<that-ip> (usually modera when using apply-haproxy-ingress-lb.sh)
 ```
 
 ## 6. (Optional) TLS

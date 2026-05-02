@@ -1,6 +1,6 @@
 # Skills index
 
-Procedural skills live under `skills/*/SKILL.md`. **Cluster layout** → `docs/architecture.md`. **Current workloads and migration status** → `docs/state.md`.
+Procedural skills live under `skills/*/SKILL.md`. **Cluster layout** → `docs/architecture.md`. **Current workloads and migration status** → `docs/state.example.md` (template); maintain local `docs/state.md` (gitignored) on your machine.
 
 ## Core cluster
 

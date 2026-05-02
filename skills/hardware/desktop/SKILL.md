@@ -33,6 +33,37 @@ allow-hotplug <iface>
 iface <iface> inet dhcp
 ```
 
+### 1a. Static IP on Debian (`/etc/network/interfaces`) — control planes and fixed LAN addresses
+
+Use this when the node must keep a **predictable IPv4** (e.g. **secondary HA control plane**, or you are not using only a router DHCP reservation). **Do not** reuse **`scripts/set-node-static-ip.sh`** for this path — that script is **netplan + WiFi**; Debian headless nodes here typically use **ifupdown** and **wired** `en*` / `eth*` interfaces.
+
+**Failure modes seen in the field (avoid these):**
+
+- **Wrong interface name** in the stanza (`iface` line does not match the NIC that actually carries LAN traffic — confirm with `ip -br link` and `ip -4 route`).
+- **Invalid or half-edited stanzas** (duplicate `iface` blocks for the same interface, or mixing `inet dhcp` and `inet static` without removing the old logic).
+- **Rebooting to “apply”** before the new config is validated live — you can lose SSH on the wrong fix.
+
+**Proven pattern (match your primary control plane node):** explicit **`address`**, **`netmask`**, **`gateway`**, **`dns-nameservers`**. Example shape (replace `<iface>` and addresses):
+
+```
+allow-hotplug <iface>
+iface <iface> inet static
+    address 198.51.100.7
+    netmask 255.255.255.0
+    gateway 198.51.100.1
+    dns-nameservers 198.51.100.5 198.51.100.1
+```
+(RFC 5737 documentation prefixes — substitute your real LAN.)
+
+**Validate before you reboot** (or at least before you consider the change safe):
+
+1. Apply with `ifdown <iface> && ifup <iface>` **or** `systemctl restart networking` — use what matches the rest of the host’s networking docs; if unsure, prefer incremental `ifup`/`ifdown` over an immediate full reboot.
+2. Check: `ip -4 addr show <iface>`, `ip route`, and `ping -c2 <gateway>`.
+3. Confirm SSH still works from the operator path you care about.
+4. Only then reboot if you still need to prove persistence across boot.
+
+**Router DHCP reservation:** still configure a **DHCP reservation** for this MAC to the same IP if your LAN expects it — OS static config and router reservation should agree so nothing else grabs the address.
+
 ## 2. Wake-on-LAN
 
 Enables remote power-on for headless desktops:

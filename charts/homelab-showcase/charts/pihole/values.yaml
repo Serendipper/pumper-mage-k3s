@@ -1,7 +1,10 @@
 # Pi-hole. Override in config/helm-values/pihole.yaml (gitignored).
 
-# Node to run on (hostname; single node; hostNetwork binds 53/80 on that node's IP).
+# Node to run on (hostname; single node; hostNetwork binds 53 + web UI port on that node's IP).
 nodeName: modera
+
+# Web admin port on the node (not 80 when HAProxy on modera owns :80 for ingress + pihole.lan routing).
+webServerPort: 8080
 
 # Timezone for Pi-hole (e.g. America/New_York).
 timezone: UTC
@@ -24,7 +27,7 @@ upstreamDns: "8.8.8.8;8.8.4.4;1.1.1.1"
 # Static dnsmasq lines (init copies to 02-custom-lan.conf on the PVC).
 #
 # DNS is name → IP only (no ports). Each host gets its own address=/name/ip — no
-# CNAME chaining. Ingress apps on dalaran share the control-plane / ingress IP below.
+# CNAME chaining. Ingress hostnames point at modera (HAProxy → nginx on each CP node).
 # Browse http://… on port 80; nginx routes by Host (plex-ingress-dalaran.yaml, etc.).
 # Direct NAS: address=/truenas… (below).
 #
@@ -32,16 +35,17 @@ upstreamDns: "8.8.8.8;8.8.4.4;1.1.1.1"
 # points at that IP — docs/control-plane-ip-change.md.
 # Optional hosts (e.g. maintenance laptop, extra LAN names) belong in gitignored
 # config/helm-values/pihole.yaml — do not commit site-specific /24 addresses above .99 here.
+# IPv4 examples below use RFC 5737 TEST-NET-II (198.51.100.0/24) — replace with your LAN in live values.
 customDnsmasqLines:
-  - "address=/dalaran/192.168.1.6"
-  - "address=/dalaran.lan/192.168.1.6"
-  - "address=/dalaran.plex/192.168.1.6"
-  - "address=/dalaran.radarr/192.168.1.6"
-  - "address=/dalaran.sonarr/192.168.1.6"
-  # Pi-hole UI: same IP as nodeName (hostNetwork binds 80/53 on that node).
-  - "address=/pihole.lan/192.168.1.5"
-  - "address=/grafana.lan/192.168.1.6"
-  - "address=/openclaw.dalaran.lan/192.168.1.6"
+  - "address=/dalaran/198.51.100.10"
+  - "address=/dalaran.lan/198.51.100.10"
+  - "address=/dalaran.plex/198.51.100.11"
+  - "address=/dalaran.radarr/198.51.100.11"
+  - "address=/dalaran.sonarr/198.51.100.11"
+  # Pi-hole UI: HAProxy on modera :80 proxies to Pi-hole on 127.0.0.1:webServerPort.
+  - "address=/pihole.lan/198.51.100.11"
+  - "address=/grafana.lan/198.51.100.11"
+  - "address=/openclaw.dalaran.lan/198.51.100.11"
   # NAS / services often use x≥100 on /24 — placeholder TEST-NET (replace in overlay with real NAS IP).
   - "address=/truenas/192.0.2.20"
   - "address=/truenas.lan/192.0.2.20"

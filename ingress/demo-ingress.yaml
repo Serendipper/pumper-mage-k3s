@@ -1,8 +1,8 @@
 # Smoke-test Ingress for the echoserver demo. Apply after:
 #   kubectl create deployment demo --image=registry.k8s.io/e2e-test-images/echoserver:2.5 --port=8080
 #   kubectl expose deployment demo --port=80 --target-port=8080
-# Then: curl -H "Host: demo.lan" http://<CONTROL_PLANE_IP>/
-# Or add <CONTROL_PLANE_IP> demo.lan to /etc/hosts and open http://demo.lan
+# Then: curl -H "Host: demo.lan" http://<MODERA_OR_HAPROXY_IP>/
+# (Pi-hole: address=/demo.lan/<that-ip> — usually modera when using scripts/apply-haproxy-ingress-lb.sh)
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

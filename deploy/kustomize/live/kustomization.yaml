@@ -1,0 +1,9 @@
+# Live overlay: published base + gitignored private/ (PVs + site patches).
+# Kustomize only loads files under this directory — see docs/kustomize-live.md
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+  - private/media-pvs.yaml
+patches:
+  - path: private/site.yaml

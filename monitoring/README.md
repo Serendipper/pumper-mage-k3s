@@ -8,10 +8,10 @@ Helm-based deployment of [kube-prometheus-stack](https://github.com/prometheus-c
 
 | Committed (template) | Live (gitignored) — use with `helm -f` |
 |------------------------|----------------------------------------|
-| `helm-values.yaml` | `config/helm-values/prometheus-stack.yaml` — Grafana auth, Ingress (`grafana.lan`), persistence, Prometheus, Loki datasource |
+| `helm-values.yaml` | `config/helm-values/prometheus-stack.yaml` — Grafana auth, Ingress (`grafana.lan`), persistence, SMTP via in-cluster `smtp-relay` + Loki datasource |
 | `loki-helm-values.yaml` | `config/helm-values/loki.yaml` |
 | `promtail-helm-values.yaml` | `config/helm-values/promtail.yaml` |
-| *(optional ConfigMap)* | `deploy/kustomize/base/monitoring/grafana-datasource-loki.yaml` — prefer **`additionalDataSources`** in `prometheus-stack.yaml`; included in **`kubectl apply -k deploy/kustomize/base`** unless you remove it from the Kustomize base (see **config/README.md**) |
+| *(Kustomize)* | `deploy/kustomize/base/monitoring/grafana-datasource-loki.yaml` (optional; prefer `additionalDataSources` in Helm) and **smtp-relay** (send-only Postfix for Grafana/others) — included in **`kubectl apply -k deploy/kustomize/base`** (see **config/README.md** to opt out) |
 
 ## Install (from control plane or with kubeconfig)
 
@@ -27,6 +27,22 @@ helm install prometheus-stack prometheus-community/kube-prometheus-stack \
 
 - **Grafana:** http://grafana.lan (or http://&lt;ingress-IP&gt; with `Host: grafana.lan`). Login: credentials in **`config/helm-values/prometheus-stack.yaml`** (`grafana.adminUser` / `grafana.adminPassword`); from the cluster: `kubectl -n monitoring get secret prometheus-stack-grafana -o jsonpath='{.data.admin-password}' | base64 -d; echo`. Where values live: **config/README.md**.
 - **Prometheus:** cluster-internal only (Grafana uses it as a datasource). To expose later, add an Ingress or port-forward.
+
+## SMTP (Grafana email alerts)
+
+Grafana is configured in **`monitoring/helm-values.yaml`** to use an **in-cluster send-only Postfix** (`smtp-relay.monitoring.svc.cluster.local:587`). The relay is **outbound / send-only**: it is not a mailbox, it does not accept public inbound mail, and it still needs a real **smarthost** (Gmail, Amazon SES, your ISP, etc.) in `smtp-relay-config` (and usually credentials in `smtp-relay-upstream`). Copy values to **`config/helm-values/prometheus-stack.yaml`**, then:
+
+1. **Apply the relay** (manifest is in the Kustomize base): `kubectl apply -k deploy/kustomize/base` so `smtp-relay` (Deployment + Service) and `smtp-relay-config` (ConfigMap) exist. Remove the `smtp-relay.yaml` `resources` entry in **`deploy/kustomize/base/kustomization.yaml`** if you do not want this on the cluster.
+
+2. **Edit the relay ConfigMap** with your provider: `RELAYHOST` (e.g. `"[smtp.gmail.com]:587"`), and if the provider needs strict TLS, set `POSTFIX_smtp_tls_security_level: "encrypt"`. Boky Postfix: [bokysan/docker-postfix](https://github.com/bokysan/docker-postfix).
+
+3. **Create the upstream secret** (credentials the relay uses to sign in to your provider; optional only if the smarthost does not use auth). Key names must match the image: `RELAYHOST_USERNAME` and `RELAYHOST_PASSWORD`:
+
+   `kubectl -n monitoring create secret generic smtp-relay-upstream --from-literal=RELAYHOST_USERNAME='you@example.com' --from-literal=RELAYHOST_PASSWORD='...' --dry-run=client -o yaml | kubectl apply -f -`
+
+4. **Helm upgrade Grafana** so `grafana.grafana.ini.smtp` points at the relay and `from_address` / `server.root_url` match you: `helm upgrade prometheus-stack prometheus-community/kube-prometheus-stack -n monitoring -f config/helm-values/prometheus-stack.yaml`
+
+5. **Grafana UI:** *Alerting* → *Contact points* → **Email** → *Send test*. If it fails, check the **`smtp-relay` pod logs** and Grafana’s logs, and the provider’s TLS/app-password rules.
 
 ## Access from LAN (grafana.lan)
 

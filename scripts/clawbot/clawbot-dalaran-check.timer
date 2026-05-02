@@ -1,0 +1,11 @@
+[Unit]
+Description=Run clawbot dalaran checker every minute
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=15m
+AccuracySec=10s
+Unit=clawbot-dalaran-check.service
+
+[Install]
+WantedBy=timers.target

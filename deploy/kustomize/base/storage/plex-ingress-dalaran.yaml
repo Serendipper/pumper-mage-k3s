@@ -1,5 +1,5 @@
-# Media Ingress on dalaran: Plex in-cluster; Sonarr/Radarr on TrueNAS via external Endpoints.
-# DNS (Pi-hole): dalaran.plex, dalaran.sonarr, dalaran.radarr → control plane / ingress (192.168.1.6). Port 80.
+# Media Ingress: Plex in-cluster; Sonarr/Radarr on TrueNAS via external Endpoints.
+# DNS (Pi-hole): dalaran.plex, dalaran.sonarr, dalaran.radarr → modera (HAProxy :80 → nginx on CP nodes). Port 80.
 # TrueNAS direct: truenas / truenas.lan → NAS LAN IP (see Pi-hole values / truenas-arr-external-services).
 apiVersion: networking.k8s.io/v1
 kind: Ingress

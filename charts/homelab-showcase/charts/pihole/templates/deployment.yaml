@@ -54,9 +54,11 @@ spec:
             - containerPort: 53
               name: dns-tcp
               protocol: TCP
-            - containerPort: 80
+            - containerPort: {{ .Values.webServerPort }}
               name: http
           env:
+            - name: FTLCONF_webserver_port
+              value: {{ .Values.webServerPort | quote }}
             - name: TZ
               value: {{ .Values.timezone | quote }}
             - name: FTLCONF_dns_upstreams
@@ -116,5 +118,5 @@ spec:
     app: {{ include "pihole.name" . }}
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: {{ .Values.webServerPort }}
       name: http

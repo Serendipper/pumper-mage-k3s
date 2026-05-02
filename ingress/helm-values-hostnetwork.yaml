@@ -1,10 +1,21 @@
 # ingress-nginx — committed TEMPLATE only. Copy to config/helm-values/ingress-nginx.yaml (see config/README.md).
 # Install/upgrade: helm install|upgrade ... -f config/helm-values/ingress-nginx.yaml
-# Set controller.nodeSelector to your K3S_CP_HOST (e.g. dalaran) in the live file.
+#
+# Runs on every control-plane node (DaemonSet + CP affinity + tolerate CP taints) so nginx binds :80/:443
+# on each HA server. LAN HTTP entry is HAProxy on modera (see scripts/apply-haproxy-ingress-lb.sh).
 controller:
   hostNetwork: true
   hostPort:
     enabled: true
   kind: DaemonSet
-  nodeSelector:
-    kubernetes.io/hostname: dalaran
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: Exists
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule

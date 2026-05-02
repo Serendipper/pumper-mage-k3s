@@ -3,13 +3,15 @@
 **Single workflow** for YAML maintained in-repo (not upstream Helm charts):
 
 ```bash
-kubectl apply -k deploy/kustomize/base
+./scripts/apply-cluster-manifests.sh
 ```
 
-Or:
+Uses **`deploy/kustomize/live`** when **`deploy/kustomize/live/private/media-pvs.yaml`** and **`private/site.yaml`** exist (gitignored); otherwise **`deploy/kustomize/base`** only. See **`docs/kustomize-live.md`**, **`./scripts/init-kustomize-live.sh`**.
+
+For a raw apply without the live overlay:
 
 ```bash
-./scripts/apply-cluster-manifests.sh
+kubectl apply -k deploy/kustomize/base
 ```
 
 ## Layout
@@ -17,8 +19,10 @@ Or:
 | Path under `deploy/kustomize/base/` | Contents |
 |-------------------------------------|----------|
 | `cert-manager/` | LE **staging** ClusterIssuer + OpenClaw **staging** Certificate (install **cert-manager** controller first). **Prod** issuer + cert YAML files stay in-repo for copy/paste when you have a **public** `dnsName`; they are **not** in the default base (`.lan` will not work with Let’s Encrypt). |
-| `storage/` | `media` namespace, NFS PV/PVC, Plex, media Ingress, TrueNAS *arr external Services/Endpoints, OpenClaw gateway |
-| `monitoring/` | Grafana Loki datasource ConfigMap (optional fallback); **Node CPU Temps** dashboard (`node-cpu-temps.json` + `configMapGenerator`) |
+| `storage/` | `media` namespace, PVCs, Plex, Ingress, TrueNAS *arr + OpenClaw (placeholder IPs in base); live PVs in **`deploy/kustomize/live/private/media-pvs.yaml`** |
+| `monitoring/` | Grafana Loki datasource ConfigMap (optional fallback); **Node CPU Temps** dashboard (`node-cpu-temps.json` + `configMapGenerator`); Plex blackbox probe (`plex-probe.yaml`) via HAProxy on **modera** |
+| `live/` | **Overlay** (base + **`private/`** gitignored PV + site patches) — see **`docs/kustomize-live.md`** |
+| `networking/haproxy-ingress-lb/` | HAProxy DaemonSet (optional) — apply with **`./scripts/apply-haproxy-ingress-lb.sh`** |
 
 **Not included:** Helm releases (ingress-nginx, kube-prometheus-stack, Loki, Pi-hole, …) — use **`helm upgrade -f config/helm-values/...`**. **Not included:** `ingress/demo-ingress.yaml` (smoke test only).
 

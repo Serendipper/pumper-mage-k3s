@@ -1,0 +1,49 @@
+# EXAMPLE ONLY — copy to deploy/kustomize/live/private/media-pvs.yaml (gitignored) and set real NAS + host paths.
+# Not part of deploy/kustomize/base; included from deploy/kustomize/live (see docs/kustomize-live.md).
+#
+# PersistentVolumes are immutable after creation; keep live YAML out of the published base.
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-media-library
+spec:
+  capacity:
+    storage: 2Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: 192.0.2.20
+    path: /mnt/default_pool/Media
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-media-downloads
+spec:
+  capacity:
+    storage: 2Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: 192.0.2.20
+    path: /mnt/default_pool/BTDownloads
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-plex-config
+spec:
+  capacity:
+    storage: 200Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  hostPath:
+    path: /home/PLACEHOLDER_USER/media-config-import/plex
+    type: Directory

@@ -39,11 +39,11 @@ We are **not** using `detect-secrets` in addition to Gitleaks — one scanner ke
 ## Policy: LAN IPs, hostnames, and “identifying” infra
 
 - **Gitleaks does not** treat RFC1918 IPs (`192.168.x.x`, `10.x`, etc.) or hostnames as credentials by default. They can still **fingerprint** your homelab if the repo is **public**.
-- **Prefer** gitignored sources for **operator-specific** truth: **`config/nodes`**, **`config/project.env`**, **`config/helm-values/`** (see **`config/README.md`**).
+- **Prefer** gitignored sources for **operator-specific** truth: **`config/nodes`**, **`config/project.env`**, **`config/helm-values/`**, **`docs/state.md`** (see **`config/README.md`**). The committed doc is **`docs/state.example.md`** — do not commit a filled-in **`docs/state.md`** to a public repo.
 - **Committed** YAML under **`deploy/kustomize/`**, chart **templates**, and **docs** may still contain **example** LAN IPs and cluster hostnames so the repo stays operable as a template — that is an intentional tradeoff for this project.
 
 If you need a **fully sanitized** public fork, maintain a branch or fork that strips or replaces addresses (no automated tool in-repo for that yet).
 
 ## Never commit
 
-- **`config/project.env`**, **`config/nodes`**, **`config/helm-values/`** — already **gitignored**; see **`docs/agents.md`**.
+- **`config/project.env`**, **`config/nodes`**, **`config/helm-values/`**, **`docs/state.md`** — already **gitignored** (or must be, for public forks); see **`docs/agents.md`**. Use **`docs/state.example.md`** in git instead.

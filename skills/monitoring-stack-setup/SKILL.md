@@ -78,7 +78,7 @@ helm upgrade prometheus-stack prometheus-community/kube-prometheus-stack \
 ## Artifacts
 
 - **monitoring/helm-values.yaml** — kube-prometheus-stack **template** (copy to `config/helm-values/prometheus-stack.yaml`).
-- **config/helm-values/prometheus-stack.yaml** — **Live** install/upgrade file (gitignored): Grafana auth, Ingress, persistence, Prometheus, Loki datasource.
+- **config/helm-values/prometheus-stack.yaml** — **Live** install/upgrade file (gitignored): Grafana auth, Ingress, persistence, Prometheus, Loki datasource, SMTP via **`smtp-relay`** (Kustomize **`deploy/kustomize/base/monitoring/smtp-relay.yaml`**; **monitoring/README.md** SMTP section).
 - **monitoring/loki-helm-values.yaml** — **Template** → `config/helm-values/loki.yaml`.
 - **monitoring/promtail-helm-values.yaml** — **Template** → `config/helm-values/promtail.yaml`.
 - **monitoring/README.md** — Quick reference. Full Helm map: **config/README.md**.

@@ -17,3 +17,7 @@ Use this checklist when **dalaran** (or whatever hosts the API / ingress) gets a
 6. **Node changelog** — **`control-plane/dalaran-*.md`** if you track IP history there.
 
 After Pi-hole picks up the new values, **`dig @<pihole-node-ip> dalaran`** and **`dig @<pihole-node-ip> dalaran.lan`** should return the new control-plane IP.
+
+## HA ingress (HAProxy on modera + nginx on each CP)
+
+If you use **`./scripts/apply-haproxy-ingress-lb.sh`**, ingress-related **`address=/…`** lines in Pi-hole should point at **modera** (not the CP IP). When **any** control-plane LAN IP used as an HAProxy backend changes, re-run the script so the **`networking/haproxy-ingress-lb`** ConfigMap updates. If **modera**’s IP changes, update Pi-hole **`address=`** lines for **`grafana.lan`**, **`dalaran.plex`**, **`pihole.lan`**, etc., and **`deploy/kustomize/live/private/site.yaml`** (Plex blackbox `Probe` target) to match.

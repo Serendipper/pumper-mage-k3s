@@ -31,7 +31,9 @@ Committed Helm **templates** and **example values** live in **monitoring/**, **i
 
 ## First-party manifests (Kustomize, not Helm)
 
-Static cluster YAML (cert-manager `ClusterIssuer` / `Certificate`, media PV/PVC, ingress, external gateways, optional Grafana ConfigMap) lives under **`deploy/kustomize/base/`**. Apply with **`kubectl apply -k deploy/kustomize/base`** (or **`./scripts/apply-cluster-manifests.sh`**). See **`deploy/kustomize/README.md`**. This is separate from Helm: upstream apps still use **`helm upgrade -f config/helm-values/...`**.
+Static cluster YAML lives under **`deploy/kustomize/base/`** (placeholders safe for GitHub). **Site-specific** PVs and LAN patches live under **`deploy/kustomize/live/private/`** (gitignored) — see **`docs/kustomize-live.md`**. Apply with **`./scripts/apply-cluster-manifests.sh`**. See **`deploy/kustomize/README.md`**. Helm is separate: **`helm upgrade -f config/helm-values/...`**.
+
+**HAProxy ingress front door (modera):** after ingress-nginx + Pi-hole Helm upgrades, run **`./scripts/apply-haproxy-ingress-lb.sh`** (reads **`config/nodes`**, **`K3S_CP2_HOST`**). See **`deploy/kustomize/base/networking/haproxy-ingress-lb/README.md`**.
 
 ## Gitignored (agent / maintainer only — do not publish)
 
@@ -41,6 +43,7 @@ Static cluster YAML (cert-manager `ClusterIssuer` / `Certificate`, media PV/PVC,
 | **nodes** | Hostname and IP, one per line; **gitignored**. Source of truth for all node and control-plane IPs; agent must read from here. Never hardcode IPs in the repo. After board/media swaps or to reconcile IPs: `kubectl get nodes -o wide` and update **nodes** from INTERNAL-IP. |
 | **generated/** | Generated files (e.g. Pi first-boot). |
 | **helm-values/** | **Live Helm values** for every chart (see table above). Agent and maintainers use **only** these files with `helm install` / `helm upgrade -f ...`; they are not committed. |
+| **`docs/state.md`** | Operator “current state” and session coverage (copy from **`docs/state.example.md`**). Gitignored so LAN-specific notes are not published. |
 
 ## Using live Helm values
 

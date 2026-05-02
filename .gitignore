@@ -19,6 +19,9 @@ config/generated/
 # Live Helm values (project-specific overrides); agent/maintainer only, not public
 config/helm-values/
 
+# Site-specific Kustomize overlay (PVs + LAN patches); must stay under deploy/kustomize/live/ for kustomize load rules
+deploy/kustomize/live/private/
+
 # Live cluster state (node + control plane changelogs)
 nodes/
 control-plane/
@@ -31,3 +34,6 @@ skills/sanitizing-sandbox/
 
 # Local TrueNAS operator helpers/docs (keep private and untracked)
 scripts/private-truenas/
+
+# Operator-maintained current state (site-specific; copy from docs/state.example.md for new clones)
+docs/state.md

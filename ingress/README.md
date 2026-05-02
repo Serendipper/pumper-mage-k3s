@@ -6,11 +6,11 @@ Artifacts for the NGINX Ingress Controller on this cluster. Traefik and servicel
 
 **Procedure:** See `skills/ingress-nginx-setup/SKILL.md`.
 
-**Control plane IP vs Ingress:** HTTP `Ingress` rules use **hostnames** (`dalaran.plex`, `openclaw.dalaran.lan`, …). They do **not** embed the control-plane IP. Clients reach nginx on **dalaran** because **Pi-hole** (or LAN DNS) maps those names to the **node IP** where **ingress-nginx** runs (`hostNetwork` + `nodeSelector` to **`dalaran`**). When that IP changes, fix **Pi-hole** Helm values and **`kubectl apply`** any updated Kustomize YAML — see **`docs/agents.md`** § *“Update dalaran” / control plane IP or ingress DNS*.
+**LAN HTTP path:** **Pi-hole** maps ingress hostnames (`grafana.lan`, `dalaran.plex`, …) to **modera** (HAProxy on **:80** / **:443**). HAProxy balances to **nginx** (`hostNetwork` DaemonSet) on **each control-plane** node. **`dalaran`** / **`dalaran.lan`** in DNS stay the **real** control-plane IP for SSH and kube API identity; they are **not** the browser entry IP for ingress apps. Apply **`./scripts/apply-haproxy-ingress-lb.sh`** after changing control-plane LAN IPs (see **`docs/control-plane-ip-change.md`**). Re-copy the Helm template into **`config/helm-values/ingress-nginx.yaml`** when upgrading ingress-nginx so the DaemonSet keeps **CP affinity + tolerations**.
 
 | File | Purpose |
 |------|---------|
-| `helm-values-hostnetwork.yaml` | **Template** — copy to `config/helm-values/ingress-nginx.yaml`, set `controller.nodeSelector` to your CP hostname. |
+| `helm-values-hostnetwork.yaml` | **Template** — copy to `config/helm-values/ingress-nginx.yaml`; schedules ingress on **all** control-plane nodes (affinity + tolerations). |
 | `demo-ingress.yaml` | Example Ingress for the echoserver smoke test; host `demo.lan`. |
 
 Install (from control plane or with kubeconfig):

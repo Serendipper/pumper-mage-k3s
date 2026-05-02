@@ -1,5 +1,5 @@
 # Sonarr / Radarr on TrueNAS — backends for nginx Ingress (media namespace).
-# Pi-hole: dalaran.sonarr / dalaran.radarr → ingress IP; Ingress routes by Host to these Services.
+# Published IPs: RFC 5737 TEST-NET — override in deploy/kustomize/live/private/site.yaml for your NAS LAN IP.
 # Endpoint ports must match what TrueNAS publishes (adjust if your apps use 8988/7878 etc.).
 apiVersion: v1
 kind: Service

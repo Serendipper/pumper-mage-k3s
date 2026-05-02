@@ -40,7 +40,7 @@
 
 ## Integration patterns
 
-- Ingress hostnames for LAN-facing apps (`grafana.lan`, `dalaran`, etc.).
+- Ingress hostnames for LAN-facing apps (`grafana.lan`, `dalaran.plex`, etc.): **Pi-hole** may point these at **modera** when **HAProxy** fronts **nginx** on each control-plane node; **`dalaran`** in DNS can still resolve to the primary CP for SSH/API naming.
 - TrueNAS NFS exports consumed as static PV/PVC from the cluster.
 - App migration: align UIDs, mount paths, and runtime IDs; roll out one workload at a time; verify before cutover.
 

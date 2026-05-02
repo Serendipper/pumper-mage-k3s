@@ -1,0 +1,60 @@
+# HAProxy on modera: LAN :80 / :443 → nginx ingress on each control-plane node; Host pihole.lan → Pi-hole admin (127.0.0.1:8080).
+# Apply ConfigMap first: ./scripts/apply-haproxy-ingress-lb.sh (generates backends from config/nodes).
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: haproxy-ingress-lb
+  namespace: networking
+  labels:
+    app.kubernetes.io/name: haproxy-ingress-lb
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: haproxy-ingress-lb
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: haproxy-ingress-lb
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: modera
+      containers:
+        - name: haproxy
+          image: docker.io/library/haproxy:3.0-alpine
+          args:
+            - haproxy
+            - -f
+            - /usr/local/etc/haproxy/haproxy.cfg
+            - -db
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+            - name: https
+              containerPort: 443
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /usr/local/etc/haproxy/haproxy.cfg
+              subPath: haproxy.cfg
+              readOnly: true
+          # Non-root cannot bind :80/:443 on hostNetwork on this image/kernel; root is required for the LAN front door.
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          livenessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+      volumes:
+        - name: config
+          configMap:
+            name: haproxy-ingress-lb

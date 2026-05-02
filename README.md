@@ -35,7 +35,7 @@ Every node is named after a mage of the [Kirin Tor](https://wowpedia.fandom.com/
 - **Flannel** — default CNI, works out of the box
 - **Debian stable** — headless, minimal, same OS on every node
 
-Namespaces, NFS/media patterns, and design constraints: **`docs/architecture.md`**. Current workloads and migration status: **`docs/state.md`**.
+Namespaces, NFS/media patterns, and design constraints: **`docs/architecture.md`**. Current workloads and migration status: committed template **`docs/state.example.md`**; copy to **`docs/state.md`** (gitignored) for your site-specific state.
 
 ## What Hardware Works
 

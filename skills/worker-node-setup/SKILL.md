@@ -220,6 +220,7 @@ Ensure the new node stays in **config/nodes** (one line: `hostname IP`) so `scri
 | `ssh-node.sh` to the new worker hangs or never returns | Project key not in `authorized_keys` on that host yet | Run step **12** (`skills/agent-environment-setup` — deploy public key) before **`ssh-node.sh`** |
 | SSH times out | Wrong IP, node asleep, firewall | Check IP, verify power, scan network |
 | No IPv4 on ethernet | DHCP issue | Use IPv6 via control plane (K3S_CP_HOST) as jump host |
+| Lost SSH after editing `/etc/network/interfaces` for static IP | Wrong `iface` name, duplicate stanzas, or reboot before validation | Console or router access; fix per **`skills/hardware/desktop/SKILL.md`** §**1a** (validate with `ip`/`ping` before reboot) |
 | Package not found | Missing apt repos | Add `contrib non-free non-free-firmware` |
 | WiFi doesn't come up after reboot | Driver issue | See `skills/hardware/laptop/wifi-drivers.md` |
 | Node on wrong SSID / “WiFi works” but not `K3S_WIFI_SSID` | Skipped laptop §2 / §2a | Check `iw dev <iface> link` or `nmcli`; apply laptop §2 and verify §2a before join |

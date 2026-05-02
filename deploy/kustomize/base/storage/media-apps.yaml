@@ -3,55 +3,7 @@ kind: Namespace
 metadata:
   name: media
 ---
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: pv-media-library
-spec:
-  capacity:
-    storage: 2Ti
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
-  nfs:
-    # Placeholder (RFC 5737 TEST-NET). Set live NAS IP in overlay or gitignored values (often 192.168.1.x, x≥100).
-    server: 192.0.2.20
-    path: /mnt/default_pool/Media
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: pv-media-downloads
-spec:
-  capacity:
-    storage: 2Ti
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
-  nfs:
-    # Placeholder (RFC 5737 TEST-NET). Set live NAS IP in overlay or gitignored values (often 192.168.1.x, x≥100).
-    server: 192.0.2.20
-    path: /mnt/default_pool/BTDownloads
----
-# SQLite-backed app data: local disk on dalaran only (not NFS). Paths match rsync import:
-#   /home/serendipper/media-config-import/plex
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: pv-plex-config
-spec:
-  capacity:
-    storage: 200Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
-  hostPath:
-    path: /home/serendipper/media-config-import/plex
-    type: Directory
----
+# PersistentVolume objects live in gitignored deploy/kustomize/live/private/media-pvs.yaml (see media-pvs.example.yaml).
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -100,6 +52,9 @@ metadata:
   name: plex
   namespace: media
 spec:
+  # hostNetwork + fixed node: RollingUpdate cannot schedule a second pod (port bind conflict on dalaran).
+  strategy:
+    type: Recreate
   replicas: 1
   selector:
     matchLabels:
@@ -117,8 +72,9 @@ spec:
         fsGroup: 568
       containers:
         - name: plex
-          image: plexinc/pms-docker:1.43.0.10492-121068a07
-          imagePullPolicy: IfNotPresent
+          # `latest` tracks Hub; Always pulls when the pod is recreated (rollout restart, reschedule). A running pod does not auto-upgrade until something restarts it.
+          image: plexinc/pms-docker:latest
+          imagePullPolicy: Always
           securityContext:
             runAsUser: 0
             runAsGroup: 0
